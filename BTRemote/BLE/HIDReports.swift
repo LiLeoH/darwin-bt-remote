@@ -1,6 +1,6 @@
 import Foundation
 
-// Report payload encoders. Report IDs live in descriptors, not payloads.
+// report payload encoders: report IDs live in descriptors, not payloads
 
 // MARK: - Mouse (Report ID 1)
 
@@ -77,7 +77,7 @@ struct KeyboardLEDs: OptionSet, Sendable, Equatable {
     }
 }
 
-/// USB HID Usage Page 0x07.
+/// USB HID Usage Page 0x07
 enum Keycode: UInt8, Sendable, Equatable {
     case a = 0x04, b, c, d, e, f, g, h, i, j, k, l, m
     case n, o, p, q, r, s, t, u, v, w, x, y, z
@@ -132,7 +132,7 @@ struct SystemActions: OptionSet, Sendable, Equatable {
 
 // MARK: - Consumer Control (Report ID 6)
 
-/// 5-byte consumer report.
+/// 5-byte consumer report
 struct ConsumerReport: Sendable, Equatable {
     var key: ConsumerKey = .none
     var acUsageA: UInt8 = 0
@@ -153,7 +153,7 @@ struct ConsumerReport: Sendable, Equatable {
     }
 }
 
-/// USB HID Usage Page 0x0C.
+/// USB HID Usage Page 0x0C
 enum ConsumerKey: UInt16, Sendable, Equatable {
     case none = 0x0000
     case playPause = 0x00CD

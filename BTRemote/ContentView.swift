@@ -7,26 +7,38 @@ struct ContentView: View {
     @State private var dragOffset: CGSize = .zero
 
     var body: some View {
+        #if os(macOS)
+        NavigationStack {
+            form
+                .formStyle(.grouped)
+                .navigationTitle(L10n.App.title)
+        }
+        .frame(minWidth: 480, idealWidth: 560, minHeight: 640, idealHeight: 800)
+        #else
         NavigationView {
-            Form {
-                statusSection
-                controlSection
-                devicesSection
-                if ble.isHIDServiceAdded {
-                    keyboardSection
-                    mouseSection
-                    consumerSection
-                    batterySection
-                }
-                if let lastError = ble.lastError ?? central.lastError {
-                    Section(header: Text(L10n.Section.lastError)) {
-                        Text(verbatim: lastError).foregroundColor(.red).font(.caption)
-                    }
-                }
-            }
-            .navigationTitle(L10n.App.title)
+            form.navigationTitle(L10n.App.title)
         }
         .navigationViewStyle(.stack)
+        #endif
+    }
+
+    private var form: some View {
+        Form {
+            statusSection
+            controlSection
+            devicesSection
+            if ble.isHIDServiceAdded {
+                keyboardSection
+                mouseSection
+                consumerSection
+                batterySection
+            }
+            if let lastError = ble.lastError ?? central.lastError {
+                Section(header: Text(L10n.Section.lastError)) {
+                    Text(verbatim: lastError).foregroundColor(.red).font(.caption)
+                }
+            }
+        }
     }
 
     private var statusSection: some View {
@@ -66,46 +78,76 @@ struct ContentView: View {
                     Label(L10n.Action.scanNearbyDevices, systemImage: "magnifyingglass")
                 }
             }
-            ForEach(central.discovered) { peripheral in
-                deviceRow(peripheral)
+            ForEach(mergedDevices) { entry in
+                deviceRow(entry)
             }
-            if central.discovered.isEmpty, !central.isScanning {
+            if mergedDevices.isEmpty, !central.isScanning {
                 Text(L10n.Device.emptyState)
                     .font(.caption).foregroundColor(.secondary)
             }
         }
     }
 
+    private var mergedDevices: [DeviceEntry] {
+        var entries: [UUID: DeviceEntry] = [:]
+        for uuid in ble.subscribedCentrals.keys {
+            entries[uuid] = DeviceEntry(
+                id: uuid,
+                name: L10n.Device.unknownName,
+                rssi: 0,
+                isSubscribed: true,
+                isCentralConnected: central.connected.contains(uuid),
+                isBlocked: ble.blockedCentrals.contains(uuid)
+            )
+        }
+        for peripheral in central.discovered {
+            let isSubscribed = ble.subscribedCentrals[peripheral.id] != nil
+            entries[peripheral.id] = DeviceEntry(
+                id: peripheral.id,
+                name: peripheral.name,
+                rssi: peripheral.rssi,
+                isSubscribed: isSubscribed,
+                isCentralConnected: central.connected.contains(peripheral.id),
+                isBlocked: ble.blockedCentrals.contains(peripheral.id)
+            )
+        }
+        return entries.values.sorted { lhs, rhs in
+            if lhs.isLive != rhs.isLive { return lhs.isLive }
+            return lhs.id.uuidString < rhs.id.uuidString
+        }
+    }
+
     @ViewBuilder
-    private func deviceRow(_ peripheral: DiscoveredPeripheral) -> some View {
-        let isConnected = central.connected.contains(peripheral.id)
+    private func deviceRow(_ entry: DeviceEntry) -> some View {
         Button {
-            if isConnected {
-                central.disconnect(peripheral.id)
+            if entry.isCentralConnected {
+                central.disconnect(entry.id)
+            } else if entry.isSubscribed {
+                ble.toggleBlocked(entry.id)
             } else {
-                central.connect(peripheral.id)
+                central.connect(entry.id)
             }
         } label: {
             HStack {
-                Image(systemName: isConnected ? "link.circle.fill" : "link.circle")
-                    .foregroundColor(isConnected ? .green : .accentColor)
+                Image(systemName: entry.iconName)
+                    .foregroundColor(entry.iconColor)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(verbatim: peripheral.name).foregroundColor(.primary)
-                    Text(verbatim: peripheral.id.uuidString)
+                    Text(verbatim: entry.name).foregroundColor(.primary)
+                    Text(verbatim: entry.id.uuidString)
                         .font(.caption2).foregroundColor(.secondary).lineLimit(1)
                 }
                 Spacer()
-                if peripheral.rssi != 0 {
-                    Text(verbatim: L10n.Device.rssi(peripheral.rssi))
+                if entry.rssi != 0 {
+                    Text(verbatim: L10n.Device.rssi(entry.rssi))
                         .font(.caption).foregroundColor(.secondary)
                 }
             }
         }
         .accessibilityLabel(
             Text(
-                verbatim: isConnected
-                    ? L10n.Device.disconnectAccessibilityLabel(peripheral.name)
-                    : L10n.Device.connectAccessibilityLabel(peripheral.name)
+                verbatim: entry.isLive
+                    ? L10n.Device.disconnectAccessibilityLabel(entry.name)
+                    : L10n.Device.connectAccessibilityLabel(entry.name)
             )
         )
     }
@@ -225,6 +267,27 @@ struct ContentView: View {
 
     private func clampInt8(_ value: CGFloat) -> Int8 {
         Int8(max(-127, min(127, Int(value))))
+    }
+}
+
+private struct DeviceEntry: Identifiable, Equatable {
+    let id: UUID
+    let name: String
+    let rssi: Int
+    let isSubscribed: Bool
+    let isCentralConnected: Bool
+    let isBlocked: Bool
+
+    var isLive: Bool { (isSubscribed && !isBlocked) || isCentralConnected }
+
+    var iconName: String {
+        if isBlocked { return "link.circle" }
+        return isLive ? "link.circle.fill" : "link.circle"
+    }
+
+    var iconColor: Color {
+        if isBlocked { return .secondary }
+        return isLive ? .green : .accentColor
     }
 }
 

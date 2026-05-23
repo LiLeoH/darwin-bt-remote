@@ -1,3 +1,4 @@
+#if os(iOS)
 import os
 import UIKit
 
@@ -17,3 +18,4 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         return true
     }
 }
+#endif

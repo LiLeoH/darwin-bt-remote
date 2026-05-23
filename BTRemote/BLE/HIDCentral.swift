@@ -3,7 +3,7 @@ import CoreBluetooth
 import Foundation
 import os
 
-/// Central-side scanner and connection-event registrar.
+/// central-side scanner and connection-event registrar
 @MainActor
 final class HIDCentral: NSObject, ObservableObject {
     @Published private(set) var state: CBManagerState = .unknown
@@ -128,8 +128,10 @@ extension HIDCentral: @preconcurrency CBCentralManagerDelegate {
         state = central.state
         log.info("central state -> \(central.state.rawValue, privacy: .public)")
         if central.state == .poweredOn {
-            // Must happen before HID services are added.
+            // must happen before HID services are added
+            #if os(iOS)
             central.registerForConnectionEvents(options: nil)
+            #endif
             refreshKnownPeripherals()
         }
         if central.state != .poweredOn {
