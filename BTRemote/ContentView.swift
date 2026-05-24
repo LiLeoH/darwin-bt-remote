@@ -4,7 +4,19 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject private var ble: HIDPeripheral
     @EnvironmentObject private var central: HIDCentral
+    #if os(macOS)
+    @EnvironmentObject private var classic: HIDClassicDevice
+    @AppStorage("BTRemote.macTransportMode") private var modeRaw: String = TransportMode.classic.rawValue
+    #endif
     @State private var dragOffset: CGSize = .zero
+
+    private var classicMode: Bool {
+        #if os(macOS)
+        return (TransportMode(rawValue: modeRaw) ?? .classic) == .classic
+        #else
+        return false
+        #endif
+    }
 
     var body: some View {
         #if os(macOS)
@@ -24,16 +36,25 @@ struct ContentView: View {
 
     private var form: some View {
         Form {
+            #if os(macOS)
+            transportModeSection
+            #endif
             statusSection
-            controlSection
-            devicesSection
-            if ble.isHIDServiceAdded {
+            if classicMode {
+                #if os(macOS)
+                pairedDevicesSection
+                #endif
+            } else {
+                bleControlSection
+                bleDevicesSection
+            }
+            if _isHIDActive {
                 keyboardSection
                 mouseSection
                 consumerSection
                 batterySection
             }
-            if let lastError = ble.lastError ?? central.lastError {
+            if let lastError = _activeError {
                 Section(header: Text(L10n.Section.lastError)) {
                     Text(verbatim: lastError).foregroundColor(.red).font(.caption)
                 }
@@ -41,18 +62,48 @@ struct ContentView: View {
         }
     }
 
+    // transport mode picker (macOS)
+    #if os(macOS)
+    private var transportModeSection: some View {
+        Section(header: Text(L10n.TransportMode.section)) {
+            Picker(selection: $modeRaw) {
+                Text(L10n.TransportMode.classic).tag(TransportMode.classic.rawValue)
+                Text(L10n.TransportMode.ble).tag(TransportMode.ble.rawValue)
+            } label: {
+                Text(L10n.TransportMode.label)
+            }
+            .pickerStyle(.segmented)
+            Text(classicMode ? L10n.TransportMode.classicHint : L10n.TransportMode.bleHint)
+                .font(.caption).foregroundColor(.secondary)
+        }
+    }
+    #endif
+
+    // status
     private var statusSection: some View {
         Section(header: Text(L10n.Section.status)) {
-            row(L10n.Status.bluetooth, Text(ble.state.localizedLabel))
-            row(L10n.Status.advertising, Text(ble.isAdvertising ? L10n.Value.yes : L10n.Value.no))
-            row(L10n.Status.hidService, Text(ble.isHIDServiceAdded ? L10n.Status.hidServiceAdded : L10n.Value.none))
-            row(L10n.Status.subscribedCentrals, Text(ble.subscribedCentrals.count, format: .number))
-            row(L10n.Status.connectedPeripherals, Text(central.connected.count, format: .number))
-            row(L10n.Status.hostLEDs, Text(verbatim: ble.keyboardLEDs.localizedLabel))
+            if classicMode {
+                #if os(macOS)
+                row(L10n.Status.bluetooth, Text(classic.state.localizedLabel))
+                row(L10n.Classic.sdpPublished, Text(classic.isSDPPublished ? L10n.Value.yes : L10n.Value.no))
+                row(L10n.Classic.ready, Text(classic.isReady ? L10n.Value.yes : L10n.Value.no))
+                row(L10n.Status.hostLEDs, Text(verbatim: classic.keyboardLEDs.localizedLabel))
+                #else
+                EmptyView()
+                #endif
+            } else {
+                row(L10n.Status.bluetooth, Text(ble.state.localizedLabel))
+                row(L10n.Status.advertising, Text(ble.isAdvertising ? L10n.Value.yes : L10n.Value.no))
+                row(L10n.Status.hidService, Text(ble.isHIDServiceAdded ? L10n.Status.hidServiceAdded : L10n.Value.none))
+                row(L10n.Status.subscribedCentrals, Text(ble.subscribedCentrals.count, format: .number))
+                row(L10n.Status.connectedPeripherals, Text(central.connected.count, format: .number))
+                row(L10n.Status.hostLEDs, Text(verbatim: ble.keyboardLEDs.localizedLabel))
+            }
         }
     }
 
-    private var controlSection: some View {
+    // BLE UI
+    private var bleControlSection: some View {
         Section {
             if ble.isAdvertising {
                 Button(role: .destructive) { ble.stop() } label: {
@@ -66,7 +117,7 @@ struct ContentView: View {
         }
     }
 
-    private var devicesSection: some View {
+    private var bleDevicesSection: some View {
         Section(header: Text(L10n.Section.devices)) {
             row(L10n.Status.central, Text(central.state.localizedLabel))
             if central.isScanning {
@@ -78,17 +129,17 @@ struct ContentView: View {
                     Label(L10n.Action.scanNearbyDevices, systemImage: "magnifyingglass")
                 }
             }
-            ForEach(mergedDevices) { entry in
+            ForEach(_mergedDevices) { entry in
                 deviceRow(entry)
             }
-            if mergedDevices.isEmpty, !central.isScanning {
+            if _mergedDevices.isEmpty, !central.isScanning {
                 Text(L10n.Device.emptyState)
                     .font(.caption).foregroundColor(.secondary)
             }
         }
     }
 
-    private var mergedDevices: [DeviceEntry] {
+    private var _mergedDevices: [DeviceEntry] {
         var entries: [UUID: DeviceEntry] = [:]
         for uuid in ble.subscribedCentrals.keys {
             entries[uuid] = DeviceEntry(
@@ -152,6 +203,65 @@ struct ContentView: View {
         )
     }
 
+    // classic UI
+    #if os(macOS)
+    private var pairedDevicesSection: some View {
+        Section(header: Text(L10n.Classic.pairedDevicesSection)) {
+            Text(L10n.Classic.pairFromSystemSettings)
+                .font(.caption).foregroundColor(.secondary)
+            Button {
+                _ = classic.presentPairingPicker()
+            } label: {
+                Label(L10n.Classic.pairNewDevice, systemImage: "plus.circle")
+            }
+            Button { classic.refreshPairedDevices() } label: {
+                Label(L10n.Classic.refresh, systemImage: "arrow.clockwise")
+            }
+            ForEach(classic.pairedDevices) { peer in
+                pairedDeviceRow(peer)
+            }
+            if classic.pairedDevices.isEmpty {
+                Text(L10n.Classic.noPairedDevices)
+                    .font(.caption).foregroundColor(.secondary)
+            }
+        }
+        .onAppear { classic.refreshPairedDevices() }
+    }
+
+    @ViewBuilder
+    private func pairedDeviceRow(_ peer: HIDClassicDevice.PairedDevice) -> some View {
+        let isLive = classic.connectedAddress == peer.id
+        HStack {
+            Button {
+                if isLive {
+                    classic.disconnect()
+                } else {
+                    classic.connect(to: peer)
+                }
+            } label: {
+                HStack {
+                    Image(systemName: isLive ? "link.circle.fill" : "link.circle")
+                        .foregroundColor(isLive ? .green : .accentColor)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(verbatim: peer.name).foregroundColor(.primary)
+                        Text(verbatim: peer.id)
+                            .font(.caption2).foregroundColor(.secondary).lineLimit(1)
+                    }
+                    Spacer()
+                    Text(isLive ? L10n.Classic.disconnect : L10n.Classic.connect)
+                        .font(.caption)
+                }
+            }
+            .buttonStyle(.plain)
+            Button(role: .destructive) { classic.forgetDevice(id: peer.id) } label: {
+                Image(systemName: "trash")
+            }
+            .buttonStyle(.borderless)
+        }
+    }
+    #endif
+
+    // input section (common)
     private var keyboardSection: some View {
         Section(header: Text(L10n.Section.keyboard)) {
             Button(L10n.Keyboard.typeHello) { Task { await typeWord("hello") } }
@@ -171,11 +281,11 @@ struct ContentView: View {
                             let dx = clampInt8(value.translation.width - dragOffset.width)
                             let dy = clampInt8(value.translation.height - dragOffset.height)
                             dragOffset = value.translation
-                            ble.sendMouse(MouseReport(dX: dx, dY: dy))
+                            _sendMouse(MouseReport(dX: dx, dY: dy))
                         }
                         .onEnded { _ in
                             dragOffset = .zero
-                            ble.sendMouse(.zero)
+                            _sendMouse(.zero)
                         }
                 )
             HStack {
@@ -185,8 +295,8 @@ struct ContentView: View {
             }
             .buttonStyle(.bordered)
             HStack {
-                Button(L10n.Mouse.wheelUp) { ble.sendMouse(MouseReport(wheel: 4)); ble.sendMouse(.zero) }
-                Button(L10n.Mouse.wheelDown) { ble.sendMouse(MouseReport(wheel: -4)); ble.sendMouse(.zero) }
+                Button(L10n.Mouse.wheelUp) { _sendMouse(MouseReport(wheel: 4)); _sendMouse(.zero) }
+                Button(L10n.Mouse.wheelDown) { _sendMouse(MouseReport(wheel: -4)); _sendMouse(.zero) }
             }
             .buttonStyle(.bordered)
         }
@@ -219,13 +329,13 @@ struct ContentView: View {
         Section(header: Text(L10n.Section.battery)) {
             Slider(
                 value: Binding(
-                    get: { Double(ble.batteryLevel) },
-                    set: { ble.updateBatteryLevel(UInt8($0)) }
+                    get: { Double(_batteryLevel) },
+                    set: { _updateBatteryLevel(UInt8($0)) }
                 ),
                 in: 0 ... 100,
                 step: 1
             )
-            row(L10n.Battery.level, Text(Double(ble.batteryLevel) / 100, format: .percent.precision(.fractionLength(0))))
+            row(L10n.Battery.level, Text(Double(_batteryLevel) / 100, format: .percent.precision(.fractionLength(0))))
         }
     }
 
@@ -237,29 +347,102 @@ struct ContentView: View {
         }
     }
 
-    // input helpers
+    // active backend adaptors
+    private var _isHIDActive: Bool {
+        if classicMode {
+            #if os(macOS)
+            return classic.isSDPPublished
+            #else
+            return false
+            #endif
+        }
+        return ble.isHIDServiceAdded
+    }
 
+    private var _activeError: String? {
+        if classicMode {
+            #if os(macOS)
+            return classic.lastError
+            #else
+            return nil
+            #endif
+        }
+        return ble.lastError ?? central.lastError
+    }
+
+    private var _batteryLevel: UInt8 {
+        if classicMode {
+            #if os(macOS)
+            return classic.batteryLevel
+            #else
+            return 100
+            #endif
+        }
+        return ble.batteryLevel
+    }
+
+    private func _sendMouse(_ report: MouseReport) {
+        if classicMode {
+            #if os(macOS)
+            classic.sendMouse(report)
+            #endif
+        } else {
+            ble.sendMouse(report)
+        }
+    }
+
+    private func _sendKeyboard(_ report: KeyboardReport) {
+        if classicMode {
+            #if os(macOS)
+            classic.sendKeyboard(report)
+            #endif
+        } else {
+            ble.sendKeyboard(report)
+        }
+    }
+
+    private func _sendConsumer(_ report: ConsumerReport) {
+        if classicMode {
+            #if os(macOS)
+            classic.sendConsumer(report)
+            #endif
+        } else {
+            ble.sendConsumer(report)
+        }
+    }
+
+    private func _updateBatteryLevel(_ level: UInt8) {
+        if classicMode {
+            #if os(macOS)
+            classic.updateBatteryLevel(level)
+            #endif
+        } else {
+            ble.updateBatteryLevel(level)
+        }
+    }
+
+    // input helpers
     private func tap(_ key: Keycode, modifiers: KeyboardModifiers = []) {
-        ble.sendKeyboard(KeyboardReport(modifiers: modifiers, keys: [key]))
-        ble.sendKeyboard(.zero)
+        _sendKeyboard(KeyboardReport(modifiers: modifiers, keys: [key]))
+        _sendKeyboard(.zero)
     }
 
     private func tap(consumer: ConsumerKey) {
-        ble.sendConsumer(ConsumerReport(key: consumer))
-        ble.sendConsumer(.zero)
+        _sendConsumer(ConsumerReport(key: consumer))
+        _sendConsumer(.zero)
     }
 
     private func click(_ button: MouseButtons) {
-        ble.sendMouse(MouseReport(buttons: button))
-        ble.sendMouse(.zero)
+        _sendMouse(MouseReport(buttons: button))
+        _sendMouse(.zero)
     }
 
     private func typeWord(_ text: String) async {
         for character in text {
             if let (key, mods) = mapASCII(character) {
-                ble.sendKeyboard(KeyboardReport(modifiers: mods, keys: [key]))
+                _sendKeyboard(KeyboardReport(modifiers: mods, keys: [key]))
                 try? await Task.sleep(nanoseconds: 20_000_000)
-                ble.sendKeyboard(.zero)
+                _sendKeyboard(.zero)
                 try? await Task.sleep(nanoseconds: 20_000_000)
             }
         }
@@ -291,7 +474,7 @@ private struct DeviceEntry: Identifiable, Equatable {
     }
 }
 
-/// ASCII to Keycode/Modifier mapping
+// ASCII to keycode/modifier mapping
 private func mapASCII(_ character: Character) -> (Keycode, KeyboardModifiers)? {
     let scalar = character.unicodeScalars.first?.value ?? 0
     switch scalar {
@@ -330,6 +513,18 @@ private extension CBManagerState {
     }
 }
 
+#if os(macOS)
+private extension HIDClassicDevice.ControllerState {
+    var localizedLabel: LocalizedStringKey {
+        switch self {
+        case .unknown: return L10n.BluetoothState.unknown
+        case .poweredOff: return L10n.BluetoothState.poweredOff
+        case .poweredOn: return L10n.BluetoothState.poweredOn
+        }
+    }
+}
+#endif
+
 private extension KeyboardLEDs {
     var localizedLabel: String {
         var parts: [String] = []
@@ -340,8 +535,17 @@ private extension KeyboardLEDs {
     }
 }
 
+#if DEBUG
 #Preview {
+    #if os(iOS)
     ContentView()
         .environmentObject(HIDPeripheral())
         .environmentObject(HIDCentral())
+    #else
+    ContentView()
+        .environmentObject(HIDPeripheral())
+        .environmentObject(HIDCentral())
+        .environmentObject(HIDClassicDevice())
+    #endif
 }
+#endif

@@ -1,7 +1,7 @@
 import CoreBluetooth
 import Foundation
 
-// HID-over-GATT profile constants
+// HID profile constants shared between BLE/HOGP and classic modes
 
 enum HIDProfile {
     static let restoreIdentifier = "BTRemote.peripheral.v1"

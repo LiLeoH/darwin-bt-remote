@@ -259,6 +259,14 @@ enum L10n {
         static var advertisedName: String {
             String(localized: "bluetooth.advertised_name")
         }
+
+        static var serviceDescription: String {
+            String(localized: "bluetooth.service_description")
+        }
+
+        static var providerName: String {
+            String(localized: "bluetooth.provider_name")
+        }
     }
 
     enum ErrorMessage {
@@ -274,6 +282,106 @@ enum L10n {
                 String(localized: "error.failed_to_connect"),
                 reason
             )
+        }
+
+        static var sdpPublishFailed: String {
+            String(localized: "error.sdp_publish_failed")
+        }
+
+        static var classicBondRequired: String {
+            String(localized: "error.classic_bond_required")
+        }
+
+        static func deviceNotPaired(_ name: String) -> String {
+            String.localizedStringWithFormat(
+                String(localized: "error.device_not_paired"),
+                name
+            )
+        }
+
+        static func openConnectionFailed(_ code: String) -> String {
+            String.localizedStringWithFormat(
+                String(localized: "error.open_connection_failed"),
+                code
+            )
+        }
+
+        static func openL2CAPFailed(_ psm: UInt16, _ code: String) -> String {
+            String.localizedStringWithFormat(
+                String(localized: "error.open_l2cap_failed"),
+                psm,
+                code
+            )
+        }
+
+        static func writeFailed(_ code: String) -> String {
+            String.localizedStringWithFormat(
+                String(localized: "error.write_failed"),
+                code
+            )
+        }
+    }
+
+    enum TransportMode {
+        static var section: LocalizedStringKey { "section.transport_mode" }
+        static var label: LocalizedStringKey { "transport_mode.label" }
+        static var classic: LocalizedStringKey { "transport_mode.classic" }
+        static var ble: LocalizedStringKey { "transport_mode.ble" }
+        static var classicHint: LocalizedStringKey { "transport_mode.classic.hint" }
+        static var bleHint: LocalizedStringKey { "transport_mode.ble.hint" }
+    }
+
+    enum Classic {
+        static var pairedDevicesSection: LocalizedStringKey {
+            "section.paired_devices"
+        }
+
+        static var noPairedDevices: LocalizedStringKey {
+            "classic.no_paired_devices"
+        }
+
+        static var refresh: LocalizedStringKey {
+            "classic.refresh"
+        }
+
+        static var connect: LocalizedStringKey {
+            "classic.connect"
+        }
+
+        static var disconnect: LocalizedStringKey {
+            "classic.disconnect"
+        }
+
+        static var connected: LocalizedStringKey {
+            "classic.connected"
+        }
+
+        static var ready: LocalizedStringKey {
+            "classic.ready"
+        }
+
+        static var sdpPublished: LocalizedStringKey {
+            "classic.sdp_published"
+        }
+
+        static var pairFromSystemSettings: LocalizedStringKey {
+            "classic.pair_from_system_settings"
+        }
+
+        static var pairNewDevice: LocalizedStringKey {
+            "classic.pair_new_device"
+        }
+
+        static var pairWindowTitle: String {
+            String(localized: "classic.pair_window.title")
+        }
+
+        static var pairWindowHeader: String {
+            String(localized: "classic.pair_window.header")
+        }
+
+        static var pairWindowDescription: String {
+            String(localized: "classic.pair_window.description")
         }
     }
 }

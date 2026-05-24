@@ -1,9 +1,8 @@
 import Foundation
 
-// report payload encoders: report IDs live in descriptors, not payloads
+// report payload encoders: report IDs in descriptors
 
-// MARK: - Mouse (Report ID 1)
-
+// 1: mouse
 struct MouseReport: Sendable, Equatable {
     var buttons: MouseButtons = []
     var dX: Int8 = 0
@@ -29,8 +28,7 @@ struct MouseButtons: OptionSet, Sendable, Equatable {
     static let middle = MouseButtons(rawValue: 1 << 2)
 }
 
-// MARK: - Keyboard (Report ID 2) and LED Output (Report ID 3)
-
+// 2: keyboard; 3: LED output
 struct KeyboardReport: Sendable, Equatable {
     var modifiers: KeyboardModifiers = []
     var keys: [Keycode] = []
@@ -77,7 +75,7 @@ struct KeyboardLEDs: OptionSet, Sendable, Equatable {
     }
 }
 
-/// USB HID Usage Page 0x07
+/// USB HID usage page 0x07
 enum Keycode: UInt8, Sendable, Equatable {
     case a = 0x04, b, c, d, e, f, g, h, i, j, k, l, m
     case n, o, p, q, r, s, t, u, v, w, x, y, z
@@ -106,8 +104,7 @@ enum Keycode: UInt8, Sendable, Equatable {
     case upArrow = 0x52
 }
 
-// MARK: - System Control (Report ID 5)
-
+// 5: system control
 struct SystemControlReport: Sendable, Equatable {
     var actions: SystemActions = []
 
@@ -130,9 +127,8 @@ struct SystemActions: OptionSet, Sendable, Equatable {
     static let displayBrightnessDecrement = SystemActions(rawValue: 1 << 7)
 }
 
-// MARK: - Consumer Control (Report ID 6)
-
-/// 5-byte consumer report
+// 6: consumer control
+// consumer report (5 bytes)
 struct ConsumerReport: Sendable, Equatable {
     var key: ConsumerKey = .none
     var acUsageA: UInt8 = 0
@@ -153,7 +149,7 @@ struct ConsumerReport: Sendable, Equatable {
     }
 }
 
-/// USB HID Usage Page 0x0C
+/// USB HID usage page 0x0C
 enum ConsumerKey: UInt16, Sendable, Equatable {
     case none = 0x0000
     case playPause = 0x00CD

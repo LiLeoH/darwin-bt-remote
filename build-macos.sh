@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 PROJECT="BTRemote"
 
-# nix-shell -p xcodegen swiftlint swiftformat xcbeautify --run "unset LD && ./build-macsos.sh"
+# nix-shell -p xcodegen swiftlint swiftformat xcbeautify --run "unset LD && ./build-macos.sh"
 xcodegen generate
 xcodebuild \
     -project $PROJECT.xcodeproj \
