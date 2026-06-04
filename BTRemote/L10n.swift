@@ -153,6 +153,24 @@ enum L10n {
         }
     }
 
+    enum DirectInput {
+        static var section: LocalizedStringKey {
+            "section.direct_input"
+        }
+
+        static var toggle: LocalizedStringKey {
+            "direct_input.toggle"
+        }
+
+        static var releaseHint: LocalizedStringKey {
+            "direct_input.release_hint"
+        }
+
+        static var captureFailedString: String {
+            String(localized: "direct_input.capture_failed")
+        }
+    }
+
     enum Mouse {
         static var dragToMovePointer: LocalizedStringKey {
             "mouse.drag_to_move_pointer"

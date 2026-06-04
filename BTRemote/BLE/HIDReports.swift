@@ -76,7 +76,7 @@ struct KeyboardLEDs: OptionSet, Sendable, Equatable {
 }
 
 /// USB HID usage page 0x07
-enum Keycode: UInt8, Sendable, Equatable {
+enum Keycode: UInt8, Sendable, Equatable, Hashable {
     case a = 0x04, b, c, d, e, f, g, h, i, j, k, l, m
     case n, o, p, q, r, s, t, u, v, w, x, y, z
     case digit1 = 0x1E, digit2, digit3, digit4, digit5, digit6, digit7, digit8, digit9, digit0

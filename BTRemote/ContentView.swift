@@ -7,6 +7,7 @@ struct ContentView: View {
     #if os(macOS)
     @EnvironmentObject private var classic: HIDClassicDevice
     @AppStorage("BTRemote.macTransportMode") private var modeRaw: String = TransportMode.classic.rawValue
+    @StateObject private var directInput = DirectInputController()
     #endif
     @State private var dragOffset: CGSize = .zero
 
@@ -26,6 +27,10 @@ struct ContentView: View {
                 .navigationTitle(L10n.App.title)
         }
         .frame(minWidth: 480, idealWidth: 560, minHeight: 640, idealHeight: 800)
+        .onDisappear { directInput.stop() }
+        .onChange(of: _isHIDActive) { isHIDActive in
+            if !isHIDActive { directInput.stop() }
+        }
         #else
         NavigationView {
             form.navigationTitle(L10n.App.title)
@@ -49,6 +54,9 @@ struct ContentView: View {
                 bleDevicesSection
             }
             if _isHIDActive {
+                #if os(macOS)
+                directInputSection
+                #endif
                 keyboardSection
                 mouseSection
                 consumerSection
@@ -258,6 +266,41 @@ struct ContentView: View {
             }
             .buttonStyle(.borderless)
         }
+    }
+    #endif
+
+    #if os(macOS)
+    private var directInputSection: some View {
+        Section(header: Text(L10n.DirectInput.section)) {
+            Toggle(isOn: directInputBinding) {
+                Label(L10n.DirectInput.toggle, systemImage: "rectangle.and.hand.point.up.left")
+            }
+            Text(L10n.DirectInput.releaseHint)
+                .font(.caption)
+                .foregroundColor(.secondary)
+            if let lastError = directInput.lastError {
+                Text(verbatim: lastError)
+                    .font(.caption)
+                    .foregroundColor(.red)
+            }
+        }
+    }
+
+    private var directInputBinding: Binding<Bool> {
+        Binding(
+            get: { directInput.isCapturing },
+            set: { shouldCapture in
+                if shouldCapture {
+                    directInput.start(
+                        sendKeyboard: _sendKeyboard,
+                        sendMouse: _sendMouse,
+                        onRelease: {}
+                    )
+                } else {
+                    directInput.stop()
+                }
+            }
+        )
     }
     #endif
 

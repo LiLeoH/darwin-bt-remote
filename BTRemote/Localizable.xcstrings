@@ -210,6 +210,39 @@
         }
       }
     },
+    "direct_input.capture_failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not capture input. Allow BT Remote in Accessibility and Input Monitoring, then try again."
+          }
+        }
+      }
+    },
+    "direct_input.release_hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Press Control + Option to release capture."
+          }
+        }
+      }
+    },
+    "direct_input.toggle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Direct Input"
+          }
+        }
+      }
+    },
     "error.failed_to_connect" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -745,6 +778,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Devices"
+          }
+        }
+      }
+    },
+    "section.direct_input" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Direct Input"
           }
         }
       }
