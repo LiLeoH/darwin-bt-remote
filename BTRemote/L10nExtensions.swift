@@ -1,0 +1,101 @@
+import Foundation
+import SwiftUI
+
+extension L10n {
+    enum Setup {
+        static var howTo: LocalizedStringKey {
+            "setup.how_to"
+        }
+
+        static var step1: LocalizedStringKey {
+            "setup.step1"
+        }
+
+        static var step2: LocalizedStringKey {
+            "setup.step2"
+        }
+
+        static var step3: LocalizedStringKey {
+            "setup.step3"
+        }
+    }
+
+    enum Settings {
+        static var trackpad: LocalizedStringKey {
+            "settings.trackpad"
+        }
+
+        static var trackingSpeed: LocalizedStringKey {
+            "settings.tracking_speed"
+        }
+
+        static var scrollSpeed: LocalizedStringKey {
+            "settings.scroll_speed"
+        }
+
+        static var connection: LocalizedStringKey {
+            "settings.connection"
+        }
+
+        static var autoAdvertise: LocalizedStringKey {
+            "settings.auto_advertise"
+        }
+
+        static var autoAdvertiseHint: LocalizedStringKey {
+            "settings.auto_advertise_hint"
+        }
+    }
+
+    enum ErrorMessage {
+        static func peripheralNotRetained(_ identifier: UUID) -> String {
+            String.localizedStringWithFormat(
+                String(localized: "error.peripheral_not_retained"),
+                identifier.uuidString
+            )
+        }
+
+        static func failedToConnect(_ reason: String) -> String {
+            String.localizedStringWithFormat(
+                String(localized: "error.failed_to_connect"),
+                reason
+            )
+        }
+
+        static var sdpPublishFailed: String {
+            String(localized: "error.sdp_publish_failed")
+        }
+
+        static var classicBondRequired: String {
+            String(localized: "error.classic_bond_required")
+        }
+
+        static func deviceNotPaired(_ name: String) -> String {
+            String.localizedStringWithFormat(
+                String(localized: "error.device_not_paired"),
+                name
+            )
+        }
+
+        static func openConnectionFailed(_ code: String) -> String {
+            String.localizedStringWithFormat(
+                String(localized: "error.open_connection_failed"),
+                code
+            )
+        }
+
+        static func openL2CAPFailed(_ psm: UInt16, _ code: String) -> String {
+            String.localizedStringWithFormat(
+                String(localized: "error.open_l2cap_failed"),
+                psm,
+                code
+            )
+        }
+
+        static func writeFailed(_ code: String) -> String {
+            String.localizedStringWithFormat(
+                String(localized: "error.write_failed"),
+                code
+            )
+        }
+    }
+}

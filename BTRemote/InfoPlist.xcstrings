@@ -7,7 +7,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "BT Remote"
+            "value" : "Bluetooth Remote"
           }
         }
       }
@@ -30,7 +30,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "BT Remote uses Bluetooth as a keyboard and mouse."
+            "value" : "Bluetooth Remote uses Bluetooth to act as a wireless keyboard, mouse, and media remote for your computer, TV, or other devices."
           }
         }
       }

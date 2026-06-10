@@ -29,6 +29,7 @@ targets:
       - path: BTRemote
     resources:
       - BTRemote/Assets.xcassets
+      - BTRemote/PrivacyInfo.xcprivacy
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: io.github.jqssun.btremote

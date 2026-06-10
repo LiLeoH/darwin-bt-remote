@@ -52,13 +52,14 @@ final class HIDPeripheral: NSObject, ObservableObject {
             pManager = CBPeripheralManager(
                 delegate: self,
                 queue: nil,
-                options: [
-                    CBPeripheralManagerOptionRestoreIdentifierKey: HIDProfile.restoreIdentifier,
-                    CBPeripheralManagerOptionShowPowerAlertKey: true
-                ]
+                options: [CBPeripheralManagerOptionShowPowerAlertKey: true]
             )
         } else if state == .poweredOn {
-            installServices()
+            if isHIDServiceAdded {
+                startAdvertisingNow()
+            } else {
+                installServices()
+            }
         }
     }
 
@@ -100,10 +101,6 @@ final class HIDPeripheral: NSObject, ObservableObject {
         let asHIDReport = Data([clamped])
         cachedReports[ReportID.battery.rawValue] = asHIDReport
         if let batteryLevelChar { _ = updateValue(asHIDReport, for: batteryLevelChar) }
-    }
-
-    func adoptRestoredLaunchOptions(_ value: Any) {
-        log.info("received restored bluetoothPeripherals key: \(String(describing: value), privacy: .public)")
     }
 
     private func installServices() {
@@ -354,44 +351,6 @@ extension HIDPeripheral: @preconcurrency CBPeripheralManagerDelegate {
         }
         if peripheral.state != .poweredOn {
             isAdvertising = false
-        }
-    }
-
-    func peripheralManager(_ peripheral: CBPeripheralManager, willRestoreState dict: [String: Any]) {
-        log.info("willRestoreState: \(dict.keys.sorted(), privacy: .public)")
-        if let services = dict[CBPeripheralManagerRestoredStateServicesKey] as? [CBMutableService] {
-            for service in services {
-                if service.uuid == HIDProfile.hidService {
-                    hidServiceObj = service
-                    isHIDServiceAdded = true
-                }
-                if service.uuid == HIDProfile.batteryService {
-                    batteryServiceObj = service
-                }
-                if service.uuid == HIDProfile.deviceInformationService {
-                    deviceInfoServiceObj = service
-                }
-                for case let mutable as CBMutableCharacteristic in service.characteristics ?? [] {
-                    indexRestoredCharacteristic(mutable)
-                }
-            }
-        }
-    }
-
-    private func indexRestoredCharacteristic(_ char: CBMutableCharacteristic) {
-        switch char.uuid {
-        case HIDProfile.bootMouseInputReport: bootMouseInputChar = char
-        case HIDProfile.bootKeyboardInputReport: bootKeyboardInputChar = char
-        case HIDProfile.bootKeyboardOutputReport: bootKeyboardOutputChar = char
-        case HIDProfile.batteryLevel: batteryLevelChar = char
-        case HIDProfile.report:
-            if let descriptor = char.descriptors?.first(where: { $0.uuid == HIDProfile.reportReference }),
-               let value = descriptor.value as? Data,
-               let id = value.first
-            {
-                charsByReportID[id] = char
-            }
-        default: break
         }
     }
 

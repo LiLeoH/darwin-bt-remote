@@ -8,6 +8,66 @@ enum L10n {
         }
     }
 
+    enum Tab {
+        static var remote: LocalizedStringKey {
+            "tab.remote"
+        }
+
+        static var keyboard: LocalizedStringKey {
+            "tab.keyboard"
+        }
+
+        static var settings: LocalizedStringKey {
+            "tab.settings"
+        }
+
+        static var setup: LocalizedStringKey {
+            "tab.setup"
+        }
+    }
+
+    enum Remote {
+        static var notConnectedTitle: LocalizedStringKey {
+            "remote.not_connected_title"
+        }
+
+        static var notConnectedMessage: LocalizedStringKey {
+            "remote.not_connected_message"
+        }
+
+        static var openSetup: LocalizedStringKey {
+            "remote.open_setup"
+        }
+
+        static var back: LocalizedStringKey {
+            "remote.back"
+        }
+
+        static var home: LocalizedStringKey {
+            "remote.home"
+        }
+
+        static var menu: LocalizedStringKey {
+            "remote.menu"
+        }
+
+        static var power: LocalizedStringKey {
+            "remote.power"
+        }
+
+        static var channelUp: LocalizedStringKey {
+            "remote.channel_up"
+        }
+
+        static var channelDown: LocalizedStringKey {
+            "remote.channel_down"
+        }
+
+        static var closedCaptions: LocalizedStringKey {
+            "remote.closed_captions"
+        }
+    }
+
     enum Section {
         static var lastError: LocalizedStringKey {
             "section.last_error"
@@ -151,6 +211,78 @@ enum L10n {
         static var pressEscape: LocalizedStringKey {
             "keyboard.press_escape"
         }
+
+        static var prompt: LocalizedStringKey {
+            "keyboard.prompt"
+        }
+
+        static var clear: LocalizedStringKey {
+            "keyboard.clear"
+        }
+
+        static var done: LocalizedStringKey {
+            "keyboard.done"
+        }
+
+        static var esc: LocalizedStringKey {
+            "keyboard.esc"
+        }
+
+        static var tab: LocalizedStringKey {
+            "keyboard.tab"
+        }
+
+        static var up: LocalizedStringKey {
+            "keyboard.up"
+        }
+
+        static var down: LocalizedStringKey {
+            "keyboard.down"
+        }
+
+        static var left: LocalizedStringKey {
+            "keyboard.left"
+        }
+
+        static var right: LocalizedStringKey {
+            "keyboard.right"
+        }
+
+        static var shift: LocalizedStringKey {
+            "keyboard.shift"
+        }
+
+        static var ctrl: LocalizedStringKey {
+            "keyboard.ctrl"
+        }
+
+        static var alt: LocalizedStringKey {
+            "keyboard.alt"
+        }
+
+        static var meta: LocalizedStringKey {
+            "keyboard.meta"
+        }
+
+        static var altGr: LocalizedStringKey {
+            "keyboard.alt_gr"
+        }
+
+        static var printScreen: LocalizedStringKey {
+            "keyboard.print_screen"
+        }
+
+        static var backspace: LocalizedStringKey {
+            "keyboard.backspace"
+        }
+
+        static var enter: LocalizedStringKey {
+            "keyboard.enter"
+        }
+
+        static var space: LocalizedStringKey {
+            "keyboard.space"
+        }
     }
 
     enum DirectInput {
@@ -208,6 +340,14 @@ enum L10n {
 
         static var nextTrack: LocalizedStringKey {
             "media.next_track"
+        }
+
+        static var rewind: LocalizedStringKey {
+            "media.rewind"
+        }
+
+        static var fastForward: LocalizedStringKey {
+            "media.fast_forward"
         }
 
         static var mute: LocalizedStringKey {
@@ -287,66 +427,30 @@ enum L10n {
         }
     }
 
-    enum ErrorMessage {
-        static func peripheralNotRetained(_ identifier: UUID) -> String {
-            String.localizedStringWithFormat(
-                String(localized: "error.peripheral_not_retained"),
-                identifier.uuidString
-            )
-        }
-
-        static func failedToConnect(_ reason: String) -> String {
-            String.localizedStringWithFormat(
-                String(localized: "error.failed_to_connect"),
-                reason
-            )
-        }
-
-        static var sdpPublishFailed: String {
-            String(localized: "error.sdp_publish_failed")
-        }
-
-        static var classicBondRequired: String {
-            String(localized: "error.classic_bond_required")
-        }
-
-        static func deviceNotPaired(_ name: String) -> String {
-            String.localizedStringWithFormat(
-                String(localized: "error.device_not_paired"),
-                name
-            )
-        }
-
-        static func openConnectionFailed(_ code: String) -> String {
-            String.localizedStringWithFormat(
-                String(localized: "error.open_connection_failed"),
-                code
-            )
-        }
-
-        static func openL2CAPFailed(_ psm: UInt16, _ code: String) -> String {
-            String.localizedStringWithFormat(
-                String(localized: "error.open_l2cap_failed"),
-                psm,
-                code
-            )
-        }
-
-        static func writeFailed(_ code: String) -> String {
-            String.localizedStringWithFormat(
-                String(localized: "error.write_failed"),
-                code
-            )
-        }
-    }
-
     enum TransportMode {
-        static var section: LocalizedStringKey { "section.transport_mode" }
-        static var label: LocalizedStringKey { "transport_mode.label" }
-        static var classic: LocalizedStringKey { "transport_mode.classic" }
-        static var ble: LocalizedStringKey { "transport_mode.ble" }
-        static var classicHint: LocalizedStringKey { "transport_mode.classic.hint" }
-        static var bleHint: LocalizedStringKey { "transport_mode.ble.hint" }
+        static var section: LocalizedStringKey {
+            "section.transport_mode"
+        }
+
+        static var label: LocalizedStringKey {
+            "transport_mode.label"
+        }
+
+        static var classic: LocalizedStringKey {
+            "transport_mode.classic"
+        }
+
+        static var ble: LocalizedStringKey {
+            "transport_mode.ble"
+        }
+
+        static var classicHint: LocalizedStringKey {
+            "transport_mode.classic.hint"
+        }
+
+        static var bleHint: LocalizedStringKey {
+            "transport_mode.ble.hint"
+        }
     }
 
     enum Classic {

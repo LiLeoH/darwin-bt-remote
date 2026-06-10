@@ -98,6 +98,7 @@ enum Keycode: UInt8, Sendable, Equatable, Hashable {
     case slash = 0x38
     case capsLock = 0x39
     case f1 = 0x3A, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12
+    case printScreen = 0x46
     case rightArrow = 0x4F
     case leftArrow = 0x50
     case downArrow = 0x51
@@ -156,7 +157,19 @@ enum ConsumerKey: UInt16, Sendable, Equatable {
     case scanNext = 0x00B5
     case scanPrev = 0x00B6
     case stop = 0x00B7
+    case rewind = 0x00B4
+    case fastForward = 0x00B3
     case mute = 0x00E2
     case volumeUp = 0x00E9
     case volumeDown = 0x00EA
+    case channelUp = 0x009C
+    case channelDown = 0x009D
+    case closedCaption = 0x0061
+    case menu = 0x0040
+    case power = 0x0030
+}
+
+extension ConsumerReport {
+    static let acHome = ConsumerReport(acUsageB: 0x23)
+    static let acBack = ConsumerReport(acUsageB: 0x24)
 }
