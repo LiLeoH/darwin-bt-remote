@@ -155,7 +155,7 @@ struct KeyboardView: View {
         }
     }
 
-    // key rows (mirrors the Android advanced keyboard special keys)
+    // key rows
 
     private let fKeys: [(Keycode, String)] = [
         (.f1, "F1"), (.f2, "F2"), (.f3, "F3"), (.f4, "F4"), (.f5, "F5"), (.f6, "F6"),

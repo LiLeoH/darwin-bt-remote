@@ -2,7 +2,7 @@ import Foundation
 
 // report payload encoders: report IDs in descriptors
 
-// 1: mouse
+/// 1: mouse
 struct MouseReport: Sendable, Equatable {
     var buttons: MouseButtons = []
     var dX: Int8 = 0
@@ -28,7 +28,7 @@ struct MouseButtons: OptionSet, Sendable, Equatable {
     static let middle = MouseButtons(rawValue: 1 << 2)
 }
 
-// 2: keyboard; 3: LED output
+/// 2: keyboard; 3: LED output
 struct KeyboardReport: Sendable, Equatable {
     var modifiers: KeyboardModifiers = []
     var keys: [Keycode] = []
@@ -105,7 +105,7 @@ enum Keycode: UInt8, Sendable, Equatable, Hashable {
     case upArrow = 0x52
 }
 
-// 5: system control
+/// 5: system control
 struct SystemControlReport: Sendable, Equatable {
     var actions: SystemActions = []
 
@@ -128,8 +128,8 @@ struct SystemActions: OptionSet, Sendable, Equatable {
     static let displayBrightnessDecrement = SystemActions(rawValue: 1 << 7)
 }
 
-// 6: consumer control
-// consumer report (5 bytes)
+/// 6: consumer control
+/// consumer report (5 bytes)
 struct ConsumerReport: Sendable, Equatable {
     var key: ConsumerKey = .none
     var acUsageA: UInt8 = 0

@@ -4,14 +4,14 @@ import Foundation
     import UIKit
 #endif
 
-// routes UI input to the active HID backend (BLE, or classic on macOS)
-
+/// routes UI input to the active HID backend (BLE, or classic on macOS)
 struct HIDInput {
     let sendMouse: (MouseReport) -> Void
     let sendKeyboard: (KeyboardReport) -> Void
     let sendConsumer: (ConsumerReport) -> Void
     let updateBattery: (UInt8) -> Void
     let isActive: Bool
+    let isConnected: Bool
     let activeError: String?
     let batteryLevel: UInt8
 
@@ -39,20 +39,20 @@ struct HIDInput {
         sendMouse(.zero)
     }
 
-    // send one printable character as a key down + up
+    /// send one printable character as a key down + up
     func type(_ character: Character) {
         guard let (key, mods) = mapASCII(character) else { return }
         sendKeyboard(KeyboardReport(modifiers: mods, keys: [key]))
         sendKeyboard(.zero)
     }
 
-    // down + up reports for one character (empty if unmappable); paced by the caller
+    /// down + up reports for one character (empty if unmappable); paced by the caller
     static func keyReports(for character: Character, adding modifiers: KeyboardModifiers = []) -> [KeyboardReport] {
         guard let (key, mods) = mapASCII(character) else { return [] }
         return [KeyboardReport(modifiers: mods.union(modifiers), keys: [key]), .zero]
     }
 
-    // down + up reports for a single key
+    /// down + up reports for a single key
     static func keyReports(for key: Keycode, modifiers: KeyboardModifiers = []) -> [KeyboardReport] {
         [KeyboardReport(modifiers: modifiers, keys: [key]), .zero]
     }
@@ -81,6 +81,7 @@ extension HIDInput {
                 sendConsumer: { classic.sendConsumer($0) },
                 updateBattery: { classic.updateBatteryLevel($0) },
                 isActive: classic.isSDPPublished,
+                isConnected: classic.connectedAddress != nil,
                 activeError: classic.lastError,
                 batteryLevel: classic.batteryLevel
             )
@@ -100,6 +101,7 @@ extension HIDInput {
             sendConsumer: { ble.sendConsumer($0) },
             updateBattery: { ble.updateBatteryLevel($0) },
             isActive: ble.isHIDServiceAdded,
+            isConnected: ble.connectedCentrals.contains { !ble.blockedCentrals.contains($0) } || !central.connected.isEmpty,
             activeError: ble.lastError ?? central.lastError,
             batteryLevel: ble.batteryLevel
         )
@@ -115,7 +117,7 @@ enum Haptics {
     }
 }
 
-// US-layout ASCII to keycode/modifier mapping
+/// US-layout ASCII to keycode/modifier mapping
 private func mapASCII(_ character: Character) -> (Keycode, KeyboardModifiers)? {
     if let a = character.asciiValue {
         if a >= 0x61, a <= 0x7A, let key = Keycode(rawValue: 0x04 + (a - 0x61)) { return (key, []) } // a..z

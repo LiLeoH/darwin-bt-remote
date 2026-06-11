@@ -2,10 +2,10 @@
     import SwiftUI
     import UIKit
 
-    // 1-finger drag: moves
-    // 1-finger tap: left-clicks
-    // 2-finger tap: right-clicks
-    // 2-finger drag: scrolls
+    /// 1-finger drag: moves
+    /// 1-finger tap: left-clicks
+    /// 2-finger tap: right-clicks
+    /// 2-finger drag: scrolls
     struct TouchpadView: UIViewRepresentable {
         var moveSensitivity: CGFloat
         var scrollSensitivity: CGFloat

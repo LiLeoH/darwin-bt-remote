@@ -3,8 +3,7 @@ import CoreBluetooth
 import os
 import SwiftUI
 
-// HID-over-GATT peripheral engine
-
+/// HID-over-GATT peripheral engine
 @MainActor
 final class HIDPeripheral: NSObject, ObservableObject {
     @Published private(set) var state: CBManagerState = .unknown
@@ -14,6 +13,7 @@ final class HIDPeripheral: NSObject, ObservableObject {
     @Published private(set) var subscribedCentrals: [UUID: Set<CBUUID>] = [:]
     /// subscribed centrals that the user has chosen to silence; broadcasts skip them
     @Published private(set) var blockedCentrals: Set<UUID> = []
+    @Published private(set) var connectedCentrals: Set<UUID> = []
     @Published private(set) var keyboardLEDs: KeyboardLEDs = []
     @Published private(set) var lastError: String?
     @Published private(set) var batteryLevel: UInt8 = 100
@@ -279,7 +279,7 @@ final class HIDPeripheral: NSObject, ObservableObject {
         guard let pManager, !isAdvertising else { return }
         pManager.startAdvertising([
             CBAdvertisementDataLocalNameKey: advertiseLocalName,
-            CBAdvertisementDataServiceUUIDsKey: [HIDProfile.batteryService, HIDProfile.hidService]
+            CBAdvertisementDataServiceUUIDsKey: [HIDProfile.hidService] // hidService alone: required for iOS controlling Android
         ])
     }
 
@@ -318,6 +318,21 @@ final class HIDPeripheral: NSObject, ObservableObject {
         }
     }
 
+    /// diagnostic logging
+    private func _trace(_ message: @autoclosure () -> String) {
+        guard UserDefaults.standard.bool(forKey: AppSettings.developerModeKey) else { return }
+        let text = message()
+        log.info("\(text, privacy: .public)")
+    }
+
+    /// records a central we just heard from
+    private func _trackInteraction(from central: CBCentral) {
+        centralObjects[central.identifier] = central
+        guard !connectedCentrals.contains(central.identifier) else { return }
+        connectedCentrals.insert(central.identifier)
+        _trace("central tracked: \(central.identifier)")
+    }
+
     private func activeRecipients() -> [CBCentral] {
         subscribedCentrals.keys
             .filter { !blockedCentrals.contains($0) }
@@ -345,7 +360,7 @@ final class HIDPeripheral: NSObject, ObservableObject {
 extension HIDPeripheral: @preconcurrency CBPeripheralManagerDelegate {
     func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
         state = peripheral.state
-        log.info("CB state -> \(peripheral.state.rawValue, privacy: .public)")
+        _trace("CB state -> \(peripheral.state.rawValue)")
         if peripheral.state == .poweredOn, isHIDServiceAllowed, !isHIDServiceAdded {
             installServices()
         }
@@ -383,8 +398,7 @@ extension HIDPeripheral: @preconcurrency CBPeripheralManagerDelegate {
             log.error("startAdvertising error: \(error.localizedDescription, privacy: .public)")
         } else {
             isAdvertising = true
-            let localName = advertiseLocalName
-            log.info("advertising as \(localName, privacy: .public)")
+            _trace("advertising as \(advertiseLocalName)")
         }
     }
 
@@ -393,9 +407,9 @@ extension HIDPeripheral: @preconcurrency CBPeripheralManagerDelegate {
         central: CBCentral,
         didSubscribeTo characteristic: CBCharacteristic
     ) {
-        centralObjects[central.identifier] = central
+        _trackInteraction(from: central)
         subscribedCentrals[central.identifier, default: []].insert(characteristic.uuid)
-        log.info("subscribe: \(central.identifier, privacy: .public) -> \(characteristic.uuid)")
+        _trace("subscribe: \(central.identifier) -> \(characteristic.uuid)")
         if let id = reportID(forCharacteristic: characteristic),
            let cached = cachedReports[id],
            let char = charsByReportID[id]
@@ -415,13 +429,14 @@ extension HIDPeripheral: @preconcurrency CBPeripheralManagerDelegate {
         central: CBCentral,
         didUnsubscribeFrom characteristic: CBCharacteristic
     ) {
-        log.info("unsubscribe: \(central.identifier, privacy: .public) <- \(characteristic.uuid)")
+        _trace("unsubscribe: \(central.identifier) <- \(characteristic.uuid)")
         guard var chars = subscribedCentrals[central.identifier] else { return }
         chars.remove(characteristic.uuid)
         if chars.isEmpty {
             subscribedCentrals.removeValue(forKey: central.identifier)
             centralObjects.removeValue(forKey: central.identifier)
             blockedCentrals.remove(central.identifier)
+            connectedCentrals.remove(central.identifier)
         } else {
             subscribedCentrals[central.identifier] = chars
         }
@@ -433,6 +448,8 @@ extension HIDPeripheral: @preconcurrency CBPeripheralManagerDelegate {
     }
 
     func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveRead request: CBATTRequest) {
+        _trace("read: \(request.central.identifier) -> \(request.characteristic.uuid)")
+        _trackInteraction(from: request.central)
         let value = readValue(forRequest: request)
         guard let value else {
             peripheral.respond(to: request, withResult: .invalidAttributeValueLength)
@@ -468,6 +485,8 @@ extension HIDPeripheral: @preconcurrency CBPeripheralManagerDelegate {
 
     func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveWrite requests: [CBATTRequest]) {
         for request in requests {
+            _trace("write: \(request.central.identifier) -> \(request.characteristic.uuid)")
+            _trackInteraction(from: request.central)
             handleWriteRequest(request)
         }
         if let first = requests.first {

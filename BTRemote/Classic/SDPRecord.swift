@@ -1,9 +1,8 @@
 #if os(macOS)
 import Foundation
 
-// builds the SDP service-record dictionary consumed by IOBluetoothSDPServiceRecord
-// keys carry the SDP attribute ID as the first 4 hex digits; suffix is informational
-
+/// builds the SDP service-record dictionary consumed by IOBluetoothSDPServiceRecord
+/// keys carry the SDP attribute ID as the first 4 hex digits; suffix is informational
 enum SDPRecord {
     /// HID combo (keyboard + mouse) classic Bluetooth service record (same descriptor as BLE HID)
     static func buildHID(
@@ -99,7 +98,7 @@ enum SDPRecord {
 
     // dataElement helpers (SDP encoding rules)
 
-    // unsigned integer: type=1, value stored big-endian in N bytes
+    /// unsigned integer: type=1, value stored big-endian in N bytes
     private static func _uint(value: UInt32, byteCount: Int) -> [String: Any] {
         var data = Data()
         switch byteCount {
@@ -121,7 +120,7 @@ enum SDPRecord {
         ]
     }
 
-    // 16-bit UUID stored as raw 2-byte Data
+    /// 16-bit UUID stored as raw 2-byte Data
     private static func _uuid16(_ value: UInt16) -> Data {
         Data([UInt8(value >> 8), UInt8(value & 0xFF)])
     }

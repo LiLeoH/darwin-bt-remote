@@ -77,8 +77,20 @@ enum L10n {
             "section.status"
         }
 
+        static var connection: LocalizedStringKey {
+            "section.connection"
+        }
+
         static var devices: LocalizedStringKey {
             "section.devices"
+        }
+
+        static var connectedDevices: LocalizedStringKey {
+            "section.connected_devices"
+        }
+
+        static var nearby: LocalizedStringKey {
+            "section.nearby"
         }
 
         static var keyboard: LocalizedStringKey {
@@ -175,6 +187,14 @@ enum L10n {
 
         static var unknownName: String {
             String(localized: "device.unknown_name")
+        }
+
+        static var connectedHostName: String {
+            String(localized: "device.connected_host_name")
+        }
+
+        static var muted: LocalizedStringKey {
+            "device.muted"
         }
 
         static func rssi(_ value: Int) -> String {

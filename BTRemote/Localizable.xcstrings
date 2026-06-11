@@ -56,7 +56,55 @@
         }
       }
     },
-    "setup.how_to" : {
+    "device_info.title" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Device Info" } } }
+    },
+    "device_info.info" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Information" } } }
+    },
+    "device_info.device" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Device" } } }
+    },
+    "device_info.manufacturer" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Manufacturer" } } }
+    },
+    "device_info.advertisement" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Advertisement" } } }
+    },
+    "device_info.services" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Advertised Services" } } }
+    },
+    "device_info.name" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Name" } } }
+    },
+    "device_info.identifier" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Identifier" } } }
+    },
+    "device_info.signal" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Signal" } } }
+    },
+    "device_info.connectable" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Connectable" } } }
+    },
+    "device_info.tx_power" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "TX Power" } } }
+    },
+    "device_info.done" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Done" } } }
+    },
+    "setup.guide" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -67,35 +115,90 @@
         }
       }
     },
-    "setup.step1" : {
+    "setup.how_to_connect" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This app appears as a Bluetooth device named BTRemote."
+            "value" : "Connecting"
           }
         }
       }
     },
-    "setup.step2" : {
+    "setup.from_app" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "On the device you want to control, open Bluetooth settings and pair with BTRemote."
+            "value" : "Connect from This Application"
           }
         }
       }
     },
-    "setup.step3" : {
+    "setup.from_app_step1" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Once paired, use the Remote and Keyboard tabs to control it."
+            "value" : "Tap \"Scan\" under Devices."
+          }
+        }
+      }
+    },
+    "setup.from_app_step2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap the device to connect."
+          }
+        }
+      }
+    },
+    "setup.from_device" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect from External Device"
+          }
+        }
+      }
+    },
+    "setup.from_device_step1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Make sure advertising is on."
+          }
+        }
+      }
+    },
+    "setup.from_device_step2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On that device, open Bluetooth settings and pair with \"BTRemote\"."
+          }
+        }
+      }
+    },
+    "setup.troubleshooting" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If there is no response on the target, forget pairing on both devices in their Settings, and then initiate pairing again from the target device."
           }
         }
       }
@@ -221,6 +324,17 @@
         }
       }
     },
+    "settings.advanced" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Advanced"
+          }
+        }
+      }
+    },
     "settings.auto_advertise" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -228,6 +342,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Start advertising on launch"
+          }
+        }
+      }
+    },
+    "settings.developer_mode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Developer Mode"
+          }
+        }
+      }
+    },
+    "settings.source_code" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Source Code"
           }
         }
       }
@@ -441,6 +577,17 @@
         }
       }
     },
+    "device.connected_host_name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected device"
+          }
+        }
+      }
+    },
     "device.empty_state" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -448,6 +595,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No devices found."
+          }
+        }
+      }
+    },
+    "device.muted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muted"
           }
         }
       }
@@ -1251,6 +1409,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Battery"
+          }
+        }
+      }
+    },
+    "section.connected_devices" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected"
+          }
+        }
+      }
+    },
+    "section.nearby" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nearby"
+          }
+        }
+      }
+    },
+    "section.connection" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connection"
           }
         }
       }

@@ -2,21 +2,91 @@ import Foundation
 import SwiftUI
 
 extension L10n {
+    enum DeviceInfo {
+        static var title: LocalizedStringKey {
+            "device_info.title"
+        }
+
+        static var info: LocalizedStringKey {
+            "device_info.info"
+        }
+
+        static var device: LocalizedStringKey {
+            "device_info.device"
+        }
+
+        static var manufacturer: LocalizedStringKey {
+            "device_info.manufacturer"
+        }
+
+        static var advertisement: LocalizedStringKey {
+            "device_info.advertisement"
+        }
+
+        static var services: LocalizedStringKey {
+            "device_info.services"
+        }
+
+        static var name: LocalizedStringKey {
+            "device_info.name"
+        }
+
+        static var identifier: LocalizedStringKey {
+            "device_info.identifier"
+        }
+
+        static var signal: LocalizedStringKey {
+            "device_info.signal"
+        }
+
+        static var connectable: LocalizedStringKey {
+            "device_info.connectable"
+        }
+
+        static var txPower: LocalizedStringKey {
+            "device_info.tx_power"
+        }
+
+        static var done: LocalizedStringKey {
+            "device_info.done"
+        }
+    }
+
     enum Setup {
-        static var howTo: LocalizedStringKey {
-            "setup.how_to"
+        static var guide: LocalizedStringKey {
+            "setup.guide"
         }
 
-        static var step1: LocalizedStringKey {
-            "setup.step1"
+        static var howToConnect: LocalizedStringKey {
+            "setup.how_to_connect"
         }
 
-        static var step2: LocalizedStringKey {
-            "setup.step2"
+        static var fromApp: LocalizedStringKey {
+            "setup.from_app"
         }
 
-        static var step3: LocalizedStringKey {
-            "setup.step3"
+        static var fromAppStep1: LocalizedStringKey {
+            "setup.from_app_step1"
+        }
+
+        static var fromAppStep2: LocalizedStringKey {
+            "setup.from_app_step2"
+        }
+
+        static var fromDevice: LocalizedStringKey {
+            "setup.from_device"
+        }
+
+        static var fromDeviceStep1: LocalizedStringKey {
+            "setup.from_device_step1"
+        }
+
+        static var fromDeviceStep2: LocalizedStringKey {
+            "setup.from_device_step2"
+        }
+
+        static var troubleshooting: LocalizedStringKey {
+            "setup.troubleshooting"
         }
     }
 
@@ -43,6 +113,18 @@ extension L10n {
 
         static var autoAdvertiseHint: LocalizedStringKey {
             "settings.auto_advertise_hint"
+        }
+
+        static var advanced: LocalizedStringKey {
+            "settings.advanced"
+        }
+
+        static var developerMode: LocalizedStringKey {
+            "settings.developer_mode"
+        }
+
+        static var sourceCode: LocalizedStringKey {
+            "settings.source_code"
         }
     }
 

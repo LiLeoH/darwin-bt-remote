@@ -6,10 +6,9 @@ import Foundation
 import os
 import SwiftUI
 
-// classic (macOS): publish a classic HID Profile 1.1 SDP record then open L2CAP control/interrupt channels to the paired host and emit HID reports
-
-// LE mode: macOS dual-mode controller advertises the public BD address with the BR/EDR-supported flag set, so the paired host can merge LE entry with BR/EDR record, but finds no HID profile as the host only looks for classic mode
-
+/// classic (macOS): publish a classic HID Profile 1.1 SDP record then open L2CAP control/interrupt channels to the paired host and emit HID reports
+///
+/// LE mode: macOS dual-mode controller advertises the public BD address with the BR/EDR-supported flag set, so the paired host can merge LE entry with BR/EDR record, but finds no HID profile as the host only looks for classic mode
 @MainActor
 final class HIDClassicDevice: NSObject, ObservableObject {
     @Published private(set) var state: ControllerState = .unknown
@@ -33,11 +32,11 @@ final class HIDClassicDevice: NSObject, ObservableObject {
     private var openingPSM: UInt16?
     private var connectTimeoutWork: DispatchWorkItem?
 
-    // openL2CAPChannelSync's internal waitforChanneOpen spins when the remote never opens (no HID Host service)
-    // openL2CAPChannelAsync returns immediately and delivers via l2capChannelOpenComplete; watchdog added so the open is bounded if delegate is never invoked
+    /// openL2CAPChannelSync's internal waitforChanneOpen spins when the remote never opens (no HID Host service)
+    /// openL2CAPChannelAsync returns immediately and delivers via l2capChannelOpenComplete; watchdog added so the open is bounded if delegate is never invoked
     private static let connectTimeout: TimeInterval = 5.0
 
-    // to persist the curated device list
+    /// to persist the curated device list
     private static let storedDevicesKey = "BTRemote.classic.devices.v1"
     private let defaults: UserDefaults = .standard
 
@@ -53,7 +52,7 @@ final class HIDClassicDevice: NSObject, ObservableObject {
         private enum CodingKeys: String, CodingKey { case id, name }
     }
 
-    // lifecycle 
+    // lifecycle
     func start() {}
 
     func stop() {
@@ -91,8 +90,8 @@ final class HIDClassicDevice: NSObject, ObservableObject {
 
     // paired-device picker support
 
-    // the device list comes from JSON array persisted in NSUserDefaults
-    // only show peers explicitly added through the pair modal
+    /// the device list comes from JSON array persisted in NSUserDefaults
+    /// only show peers explicitly added through the pair modal
     func refreshPairedDevices() {
         var collected = _loadStoredDevices()
         for i in collected.indices {
@@ -101,8 +100,8 @@ final class HIDClassicDevice: NSObject, ObservableObject {
         pairedDevices = collected
     }
 
-    // calls a private BOOL getter on IOBluetoothDevice via KVC
-    // returns false if selector missing
+    /// calls a private BOOL getter on IOBluetoothDevice via KVC
+    /// returns false if selector missing
     nonisolated fileprivate static func _privateBool(_ object: AnyObject, key: String) -> Bool {
         guard let ns = object as? NSObject else { return false }
         let value = ns.value(forKey: key)
@@ -124,7 +123,7 @@ final class HIDClassicDevice: NSObject, ObservableObject {
         return dev.isConnected()
     }
 
-    // append a device the user just paired via the modal; no-op if already present
+    /// append a device the user just paired via the modal; no-op if already present
     private func _rememberDevice(_ entry: PairedDevice) {
         var list = _loadStoredDevices()
         if list.contains(where: { $0.id == entry.id }) { return }
@@ -132,7 +131,7 @@ final class HIDClassicDevice: NSObject, ObservableObject {
         _saveStoredDevices(list)
     }
 
-    // user-initiated removal of a stored entry; does not unpair at OS level
+    /// user-initiated removal of a stored entry; does not unpair at OS level
     func forgetDevice(id: String) {
         var list = _loadStoredDevices()
         list.removeAll { $0.id == id }
@@ -140,9 +139,9 @@ final class HIDClassicDevice: NSObject, ObservableObject {
         refreshPairedDevices()
     }
 
-    // system device selector + pair UI (IOBluetoothDeviceSelectorController)
-    // temporarily flips Class of Device so remote scanners recognize it as a HID device during handshake
-    // returns the IOBluetoothDevice the user selected, if any
+    /// system device selector + pair UI (IOBluetoothDeviceSelectorController)
+    /// temporarily flips Class of Device so remote scanners recognize it as a HID device during handshake
+    /// returns the IOBluetoothDevice the user selected, if any
     @discardableResult
     func presentPairingPicker() -> PairedDevice? {
         // get selector first, then publishService, then setCoD
@@ -305,7 +304,7 @@ final class HIDClassicDevice: NSObject, ObservableObject {
         return result
     }
 
-    // HID Interrupt PDU: header 0xA1 (DATA / INPUT) + reportID + payload
+    /// HID Interrupt PDU: header 0xA1 (DATA / INPUT) + reportID + payload
     private func _sendInputReport(_ reportID: ReportID, payload: Data) {
         guard let interruptChannel else { return }
         var buffer = Data(capacity: 2 + payload.count)
@@ -366,9 +365,9 @@ extension HIDClassicDevice: @preconcurrency IOBluetoothL2CAPChannelDelegate {
         }
     }
 
-    // host writes flow over PSM 0x11 (Control)
-    // spec mandates responding with HID HANDSHAKE byte for every well-formed message on control channel
-    // for any recognized transaction it passes status 0
+    /// host writes flow over PSM 0x11 (Control)
+    /// spec mandates responding with HID HANDSHAKE byte for every well-formed message on control channel
+    /// for any recognized transaction it passes status 0
     private func _handleHostMessage(on channel: IOBluetoothL2CAPChannel, bytes: Data) {
         guard let header = bytes.first else { return }
         let transaction = header >> 4
@@ -390,7 +389,7 @@ extension HIDClassicDevice: @preconcurrency IOBluetoothL2CAPChannelDelegate {
         }
     }
 
-    // HID HANDSHAKE response codes per BT HID profile spec
+    /// HID HANDSHAKE response codes per BT HID profile spec
     private enum HandshakeStatus: UInt8 {
         case successful = 0x00
         case notReady = 0x01
@@ -401,7 +400,7 @@ extension HIDClassicDevice: @preconcurrency IOBluetoothL2CAPChannelDelegate {
         case errFatal = 0x0F
     }
 
-    // HID HANDSHAKE message
+    /// HID HANDSHAKE message
     private func _sendControlHandshake(status: HandshakeStatus) {
         guard let controlChannel else { return }
         var byte: UInt8 = status.rawValue

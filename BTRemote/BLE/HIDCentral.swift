@@ -18,6 +18,13 @@ final class HIDCentral: NSObject, ObservableObject {
     private var centralManager: CBCentralManager?
     private var peripheralCache: [UUID: CBPeripheral] = [:]
 
+    /// diagnostic logging
+    private func _trace(_ message: @autoclosure () -> String) {
+        guard UserDefaults.standard.bool(forKey: AppSettings.developerModeKey) else { return }
+        let text = message()
+        log.info("\(text, privacy: .public)")
+    }
+
     func start() {
         guard centralManager == nil else { return }
         centralManager = CBCentralManager(
@@ -41,13 +48,13 @@ final class HIDCentral: NSObject, ObservableObject {
             options: [CBCentralManagerScanOptionAllowDuplicatesKey: false]
         )
         isScanning = true
-        log.info("scan started")
+        _trace("scan started")
     }
 
     func stopScan() {
         centralManager?.stopScan()
         isScanning = false
-        log.info("scan stopped")
+        _trace("scan stopped")
     }
 
     func connect(_ identifier: UUID) {
@@ -63,7 +70,7 @@ final class HIDCentral: NSObject, ObservableObject {
             CBConnectPeripheralOptionNotifyOnConnectionKey: true,
             CBConnectPeripheralOptionNotifyOnDisconnectionKey: true
         ])
-        log.info("connect requested: \(peripheral.identifier, privacy: .public)")
+        _trace("connect requested: \(peripheral.identifier)")
     }
 
     func disconnect(_ identifier: UUID) {
@@ -76,61 +83,76 @@ final class HIDCentral: NSObject, ObservableObject {
         let known = centralManager.retrieveConnectedPeripherals(withServices: servicesFilter)
         for peripheral in known {
             peripheralCache[peripheral.identifier] = peripheral
-            upsertDiscovered(
-                peripheral: peripheral,
-                advertisementData: [:],
-                rssi: 0,
-                fromKnown: true
-            )
+            upsertDiscovered(peripheral: peripheral, advertisementData: [:], rssi: 0)
         }
     }
 
     private func upsertDiscovered(
         peripheral: CBPeripheral,
         advertisementData: [String: Any],
-        rssi: Int,
-        fromKnown: Bool = false
+        rssi: Int
     ) {
-        let advertisedName = advertisementData[CBAdvertisementDataLocalNameKey] as? String
+        let resolvedName = (advertisementData[CBAdvertisementDataLocalNameKey] as? String) ?? peripheral.name
         let services = (advertisementData[CBAdvertisementDataServiceUUIDsKey] as? [CBUUID]) ?? []
+        let companyID = Self.companyID(from: advertisementData)
+        let txPower = (advertisementData[CBAdvertisementDataTxPowerLevelKey] as? NSNumber)?.intValue
+        let isConnectable = (advertisementData[CBAdvertisementDataIsConnectable] as? NSNumber)?.boolValue
+        _trace(
+            "discovered: \(peripheral.identifier) name=\(resolvedName ?? "nil") company=\(companyID ?? 0) services=\(services) rssi=\(rssi)"
+        )
         let entry = DiscoveredPeripheral(
             id: peripheral.identifier,
-            name: advertisedName ?? peripheral.name ?? L10n.Device.unknownName,
+            name: resolvedName ?? L10n.Device.unknownName,
+            isNamed: resolvedName != nil,
             rssi: rssi,
             advertisedServices: services,
-            knownByOS: fromKnown || peripheral.name != nil
+            companyID: companyID,
+            txPower: txPower,
+            isConnectable: isConnectable
         )
         if let index = discovered.firstIndex(where: { $0.id == entry.id }) {
             let existing = discovered[index]
             discovered[index] = DiscoveredPeripheral(
                 id: entry.id,
-                name: entry.name == L10n.Device.unknownName ? existing.name : entry.name,
+                name: entry.isNamed ? entry.name : existing.name,
+                isNamed: existing.isNamed || entry.isNamed,
                 rssi: rssi == 0 ? existing.rssi : rssi,
                 advertisedServices: services.isEmpty ? existing.advertisedServices : services,
-                knownByOS: existing.knownByOS || entry.knownByOS
+                companyID: companyID ?? existing.companyID,
+                txPower: txPower ?? existing.txPower,
+                isConnectable: isConnectable ?? existing.isConnectable
             )
         } else {
             discovered.append(entry)
         }
+    }
+
+    private static func companyID(from advertisementData: [String: Any]) -> UInt16? {
+        guard let data = advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data, data.count >= 2 else { return nil }
+        let bytes = [UInt8](data.prefix(2))
+        return UInt16(bytes[0]) | (UInt16(bytes[1]) << 8)
     }
 }
 
 struct DiscoveredPeripheral: Identifiable, Equatable {
     let id: UUID
     var name: String
+    var isNamed: Bool
     var rssi: Int
     var advertisedServices: [CBUUID]
-    var knownByOS: Bool
+    var companyID: UInt16?
+    var txPower: Int?
+    var isConnectable: Bool?
 }
 
 extension HIDCentral: @preconcurrency CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         state = central.state
-        log.info("central state -> \(central.state.rawValue, privacy: .public)")
+        _trace("central state -> \(central.state.rawValue)")
         if central.state == .poweredOn {
             // must happen before HID services are added
             #if os(iOS)
-            central.registerForConnectionEvents(options: nil)
+                central.registerForConnectionEvents(options: nil)
             #endif
             refreshKnownPeripherals()
         }
@@ -141,7 +163,7 @@ extension HIDCentral: @preconcurrency CBCentralManagerDelegate {
     }
 
     func centralManager(_ central: CBCentralManager, willRestoreState dict: [String: Any]) {
-        log.info("central willRestoreState: \(dict.keys.sorted(), privacy: .public)")
+        _trace("central willRestoreState: \(dict.keys.sorted())")
         if let restored = dict[CBCentralManagerRestoredStatePeripheralsKey] as? [CBPeripheral] {
             for peripheral in restored {
                 peripheralCache[peripheral.identifier] = peripheral
@@ -165,7 +187,7 @@ extension HIDCentral: @preconcurrency CBCentralManagerDelegate {
 
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         connected.insert(peripheral.identifier)
-        log.info("connected: \(peripheral.identifier, privacy: .public)")
+        _trace("connected: \(peripheral.identifier)")
         peripheralCache[peripheral.identifier] = peripheral
     }
 
@@ -179,7 +201,7 @@ extension HIDCentral: @preconcurrency CBCentralManagerDelegate {
             log.error("disconnected with error: \(error.localizedDescription, privacy: .public)")
             lastError = error.localizedDescription
         } else {
-            log.info("disconnected: \(peripheral.identifier, privacy: .public)")
+            _trace("disconnected: \(peripheral.identifier)")
         }
     }
 

@@ -4,12 +4,12 @@ import SwiftUI
 struct SetupView: View {
     @EnvironmentObject private var ble: HIDPeripheral
     @EnvironmentObject private var central: HIDCentral
+    @AppStorage(AppSettings.developerModeKey) private var developerMode = false
     #if os(macOS)
         @EnvironmentObject private var classic: HIDClassicDevice
         @AppStorage("BTRemote.macTransportMode") private var modeRaw: String = TransportMode.classic.rawValue
         @StateObject private var directInput = DirectInputController()
     #endif
-    @State private var dragOffset: CGSize = .zero
 
     private var classicMode: Bool {
         #if os(macOS)
@@ -48,28 +48,21 @@ struct SetupView: View {
 
     private var form: some View {
         Form {
-            guidanceSection
-            #if os(macOS)
-                transportModeSection
-            #endif
-            statusSection
+            guideSection
             if classicMode {
                 #if os(macOS)
                     pairedDevicesSection
                 #endif
             } else {
-                bleControlSection
-                bleDevicesSection
+                connectionSection
             }
-            if hid.isActive {
-                #if os(macOS)
-                    directInputSection
-                #endif
-                keyboardSection
-                mouseSection
-                consumerSection
-                batterySection
-            }
+            #if os(macOS)
+                transportModeSection
+            #endif
+            statusSection
+            #if os(macOS)
+                if hid.isActive { directInputSection }
+            #endif
             if let lastError = hid.activeError {
                 Section(header: Text(L10n.Section.lastError)) {
                     Text(verbatim: lastError).foregroundColor(.red).font(.caption)
@@ -78,16 +71,12 @@ struct SetupView: View {
         }
     }
 
-    private var guidanceSection: some View {
-        Section(header: Text(L10n.Setup.howTo)) {
-            guidanceStep("1.circle", L10n.Setup.step1)
-            guidanceStep("2.circle", L10n.Setup.step2)
-            guidanceStep("3.circle", L10n.Setup.step3)
+    private var guideSection: some View {
+        Section(header: Text(L10n.Setup.guide)) {
+            NavigationLink { GuideView() } label: {
+                Label(L10n.Setup.howToConnect, systemImage: "questionmark.circle")
+            }
         }
-    }
-
-    private func guidanceStep(_ icon: String, _ text: LocalizedStringKey) -> some View {
-        Label { Text(text) } icon: { Image(systemName: icon) }
     }
 
     // transport mode picker (macOS)
@@ -107,32 +96,36 @@ struct SetupView: View {
         }
     #endif
 
-    /// status
+    // status
     private var statusSection: some View {
         Section(header: Text(L10n.Section.status)) {
             if classicMode {
                 #if os(macOS)
                     row(L10n.Status.bluetooth, Text(classic.state.localizedLabel))
-                    row(L10n.Classic.sdpPublished, Text(classic.isSDPPublished ? L10n.Value.yes : L10n.Value.no))
                     row(L10n.Classic.ready, Text(classic.isReady ? L10n.Value.yes : L10n.Value.no))
-                    row(L10n.Status.hostLEDs, Text(verbatim: classic.keyboardLEDs.localizedLabel))
+                    if developerMode {
+                        row(L10n.Classic.sdpPublished, Text(classic.isSDPPublished ? L10n.Value.yes : L10n.Value.no))
+                        row(L10n.Status.hostLEDs, Text(verbatim: classic.keyboardLEDs.localizedLabel))
+                    }
                 #else
                     EmptyView()
                 #endif
             } else {
                 row(L10n.Status.bluetooth, Text(ble.state.localizedLabel))
                 row(L10n.Status.advertising, Text(ble.isAdvertising ? L10n.Value.yes : L10n.Value.no))
-                row(L10n.Status.hidService, Text(ble.isHIDServiceAdded ? L10n.Status.hidServiceAdded : L10n.Value.none))
-                row(L10n.Status.subscribedCentrals, Text(ble.subscribedCentrals.count, format: .number))
-                row(L10n.Status.connectedPeripherals, Text(central.connected.count, format: .number))
-                row(L10n.Status.hostLEDs, Text(verbatim: ble.keyboardLEDs.localizedLabel))
+                if developerMode {
+                    row(L10n.Status.hidService, Text(ble.isHIDServiceAdded ? L10n.Status.hidServiceAdded : L10n.Value.none))
+                    row(L10n.Status.subscribedCentrals, Text(ble.subscribedCentrals.count, format: .number))
+                    row(L10n.Status.connectedPeripherals, Text(central.connected.count, format: .number))
+                    row(L10n.Status.hostLEDs, Text(verbatim: ble.keyboardLEDs.localizedLabel))
+                }
             }
         }
     }
 
-    /// BLE UI
-    private var bleControlSection: some View {
-        Section {
+    // BLE UI
+    private var connectionSection: some View {
+        Section(header: Text(L10n.Section.connection)) {
             if ble.isAdvertising {
                 Button(role: .destructive) { ble.stop() } label: {
                     Label(L10n.Action.stopAdvertising, systemImage: "stop.circle")
@@ -142,92 +135,12 @@ struct SetupView: View {
                     Label(L10n.Action.startAdvertising, systemImage: "antenna.radiowaves.left.and.right")
                 }
             }
-        }
-    }
-
-    private var bleDevicesSection: some View {
-        Section(header: Text(L10n.Section.devices)) {
-            row(L10n.Status.central, Text(central.state.localizedLabel))
-            if central.isScanning {
-                Button(role: .destructive) { central.stopScan() } label: {
-                    Label(L10n.Action.stopScanning, systemImage: "stop.circle")
-                }
-            } else {
-                Button { central.startScan() } label: {
-                    Label(L10n.Action.scanNearbyDevices, systemImage: "magnifyingglass")
-                }
-            }
-            ForEach(_mergedDevices) { entry in
-                deviceRow(entry)
-            }
-            if _mergedDevices.isEmpty, !central.isScanning {
-                Text(L10n.Device.emptyState)
-                    .font(.caption).foregroundColor(.secondary)
+            NavigationLink {
+                DeviceListView()
+            } label: {
+                Label(L10n.Section.devices, systemImage: "dot.radiowaves.left.and.right")
             }
         }
-    }
-
-    private var _mergedDevices: [DeviceEntry] {
-        var entries: [UUID: DeviceEntry] = [:]
-        for uuid in ble.subscribedCentrals.keys {
-            entries[uuid] = DeviceEntry(
-                id: uuid,
-                name: L10n.Device.unknownName,
-                rssi: 0,
-                isSubscribed: true,
-                isCentralConnected: central.connected.contains(uuid),
-                isBlocked: ble.blockedCentrals.contains(uuid)
-            )
-        }
-        for peripheral in central.discovered {
-            let isSubscribed = ble.subscribedCentrals[peripheral.id] != nil
-            entries[peripheral.id] = DeviceEntry(
-                id: peripheral.id,
-                name: peripheral.name,
-                rssi: peripheral.rssi,
-                isSubscribed: isSubscribed,
-                isCentralConnected: central.connected.contains(peripheral.id),
-                isBlocked: ble.blockedCentrals.contains(peripheral.id)
-            )
-        }
-        return entries.values.sorted { lhs, rhs in
-            if lhs.isLive != rhs.isLive { return lhs.isLive }
-            return lhs.id.uuidString < rhs.id.uuidString
-        }
-    }
-
-    private func deviceRow(_ entry: DeviceEntry) -> some View {
-        Button {
-            if entry.isCentralConnected {
-                central.disconnect(entry.id)
-            } else if entry.isSubscribed {
-                ble.toggleBlocked(entry.id)
-            } else {
-                central.connect(entry.id)
-            }
-        } label: {
-            HStack {
-                Image(systemName: entry.iconName)
-                    .foregroundColor(entry.iconColor)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(verbatim: entry.name).foregroundColor(.primary)
-                    Text(verbatim: entry.id.uuidString)
-                        .font(.caption2).foregroundColor(.secondary).lineLimit(1)
-                }
-                Spacer()
-                if entry.rssi != 0 {
-                    Text(verbatim: L10n.Device.rssi(entry.rssi))
-                        .font(.caption).foregroundColor(.secondary)
-                }
-            }
-        }
-        .accessibilityLabel(
-            Text(
-                verbatim: entry.isLive
-                    ? L10n.Device.disconnectAccessibilityLabel(entry.name)
-                    : L10n.Device.connectAccessibilityLabel(entry.name)
-            )
-        )
     }
 
     // classic UI
@@ -324,113 +237,12 @@ struct SetupView: View {
         }
     #endif
 
-    /// input section (common)
-    private var keyboardSection: some View {
-        Section(header: Text(L10n.Section.keyboard)) {
-            Button(L10n.Keyboard.typeHello) { Task { await hid.typeWord("hello") } }
-            Button(L10n.Keyboard.pressReturn) { hid.tap(.return) }
-            Button(L10n.Keyboard.pressEscape) { hid.tap(.escape) }
-        }
-    }
-
-    private var mouseSection: some View {
-        Section(header: Text(L10n.Section.mouse)) {
-            Color.secondary.opacity(0.15)
-                .frame(height: 200)
-                .overlay(Text(L10n.Mouse.dragToMovePointer).foregroundColor(.secondary))
-                .gesture(
-                    DragGesture()
-                        .onChanged { value in
-                            let dx = HIDInput.clamp(value.translation.width - dragOffset.width)
-                            let dy = HIDInput.clamp(value.translation.height - dragOffset.height)
-                            dragOffset = value.translation
-                            hid.move(dx: dx, dy: dy)
-                        }
-                        .onEnded { _ in
-                            dragOffset = .zero
-                            hid.sendMouse(.zero)
-                        }
-                )
-            HStack {
-                Button(L10n.Mouse.leftButton) { hid.click(.left) }
-                Button(L10n.Mouse.middleButton) { hid.click(.middle) }
-                Button(L10n.Mouse.rightButton) { hid.click(.right) }
-            }
-            .buttonStyle(.bordered)
-            HStack {
-                Button(L10n.Mouse.wheelUp) { hid.scroll(4) }
-                Button(L10n.Mouse.wheelDown) { hid.scroll(-4) }
-            }
-            .buttonStyle(.bordered)
-        }
-    }
-
-    private var consumerSection: some View {
-        Section(header: Text(L10n.Section.media)) {
-            HStack {
-                Button { hid.tap(consumer: .scanPrev) } label: { Image(systemName: "backward.fill") }
-                    .accessibilityLabel(L10n.Media.previousTrack)
-                Button { hid.tap(consumer: .playPause) } label: { Image(systemName: "playpause.fill") }
-                    .accessibilityLabel(L10n.Media.playPause)
-                Button { hid.tap(consumer: .scanNext) } label: { Image(systemName: "forward.fill") }
-                    .accessibilityLabel(L10n.Media.nextTrack)
-            }
-            .buttonStyle(.bordered)
-            HStack {
-                Button { hid.tap(consumer: .mute) } label: { Image(systemName: "speaker.slash.fill") }
-                    .accessibilityLabel(L10n.Media.mute)
-                Button { hid.tap(consumer: .volumeDown) } label: { Image(systemName: "speaker.wave.1.fill") }
-                    .accessibilityLabel(L10n.Media.volumeDown)
-                Button { hid.tap(consumer: .volumeUp) } label: { Image(systemName: "speaker.wave.3.fill") }
-                    .accessibilityLabel(L10n.Media.volumeUp)
-            }
-            .buttonStyle(.bordered)
-        }
-    }
-
-    private var batterySection: some View {
-        Section(header: Text(L10n.Section.battery)) {
-            Slider(
-                value: Binding(
-                    get: { Double(hid.batteryLevel) },
-                    set: { hid.updateBattery(UInt8($0)) }
-                ),
-                in: 0 ... 100,
-                step: 1
-            )
-            row(L10n.Battery.level, Text(Double(hid.batteryLevel) / 100, format: .percent.precision(.fractionLength(0))))
-        }
-    }
-
     private func row(_ title: LocalizedStringKey, _ value: Text) -> some View {
         HStack {
             Text(title)
             Spacer()
             value.foregroundColor(.secondary)
         }
-    }
-}
-
-private struct DeviceEntry: Identifiable, Equatable {
-    let id: UUID
-    let name: String
-    let rssi: Int
-    let isSubscribed: Bool
-    let isCentralConnected: Bool
-    let isBlocked: Bool
-
-    var isLive: Bool {
-        (isSubscribed && !isBlocked) || isCentralConnected
-    }
-
-    var iconName: String {
-        if isBlocked { return "link.circle" }
-        return isLive ? "link.circle.fill" : "link.circle"
-    }
-
-    var iconColor: Color {
-        if isBlocked { return .secondary }
-        return isLive ? .green : .accentColor
     }
 }
 
