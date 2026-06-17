@@ -460,7 +460,7 @@ enum L10n {
             "transport_mode.classic"
         }
 
-        static var ble: LocalizedStringKey {
+        static var lowEnergy: LocalizedStringKey {
             "transport_mode.ble"
         }
 
@@ -468,7 +468,7 @@ enum L10n {
             "transport_mode.classic.about"
         }
 
-        static var bleAbout: LocalizedStringKey {
+        static var lowEnergyAbout: LocalizedStringKey {
             "transport_mode.ble.about"
         }
 
@@ -476,7 +476,7 @@ enum L10n {
             "transport_mode.classic.compatibility"
         }
 
-        static var bleCompatibility: LocalizedStringKey {
+        static var lowEnergyCompatibility: LocalizedStringKey {
             "transport_mode.ble.compatibility"
         }
     }

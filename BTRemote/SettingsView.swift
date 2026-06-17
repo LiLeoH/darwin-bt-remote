@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @EnvironmentObject private var ble: HIDPeripheral
+    @EnvironmentObject private var lowEnergy: HIDPeripheral
     @EnvironmentObject private var central: HIDCentral
     #if os(macOS)
         @EnvironmentObject private var classic: HIDClassicDevice
@@ -18,9 +18,9 @@ struct SettingsView: View {
 
     private var hid: HIDInput {
         #if os(macOS)
-            return HIDInput.make(ble: ble, central: central, classic: classic, classicMode: macTransport == .classic)
+            return HIDInput.make(lowEnergy: lowEnergy, central: central, classic: classic, classicMode: macTransport == .classic)
         #else
-            return HIDInput.make(ble: ble, central: central)
+            return HIDInput.make(lowEnergy: lowEnergy, central: central)
         #endif
     }
 

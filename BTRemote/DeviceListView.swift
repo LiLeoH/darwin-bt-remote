@@ -1,9 +1,8 @@
 import CoreBluetooth
 import SwiftUI
 
-/// connected hosts (incoming) plus nearby peripherals to connect to
 struct DeviceListView: View {
-    @EnvironmentObject private var ble: HIDPeripheral
+    @EnvironmentObject private var lowEnergy: HIDPeripheral
     @EnvironmentObject private var central: HIDCentral
     @State private var selectedInfo: DeviceEntry?
 
@@ -47,7 +46,7 @@ struct DeviceListView: View {
 
     /// hosts that connected to us (peripheral role)
     private var _connectedHosts: [DeviceEntry] {
-        ble.connectedCentrals
+        lowEnergy.connectedCentrals
             .map { uuid in
                 DeviceEntry(
                     id: uuid,
@@ -60,7 +59,7 @@ struct DeviceListView: View {
                     isConnectable: nil,
                     isHostConnected: true,
                     isCentralConnected: false,
-                    isBlocked: ble.blockedCentrals.contains(uuid)
+                    isBlocked: lowEnergy.blockedCentrals.contains(uuid)
                 )
             }
             .sorted { $0.id.uuidString < $1.id.uuidString }
@@ -90,10 +89,9 @@ struct DeviceListView: View {
             }
     }
 
-    /// a connected host: tap mutes/unmutes it
     private func hostRow(_ entry: DeviceEntry) -> some View {
         HStack {
-            Button { ble.toggleBlocked(entry.id) } label: {
+            Button { lowEnergy.toggleBlocked(entry.id) } label: {
                 row(entry) {
                     if entry.isBlocked {
                         Text(L10n.Device.muted).font(.caption).foregroundColor(.secondary)
@@ -105,7 +103,6 @@ struct DeviceListView: View {
         }
     }
 
-    /// a nearby peripheral: tap to connect or disconnect in the central role
     private func nearbyRow(_ entry: DeviceEntry) -> some View {
         HStack {
             Button {
@@ -166,9 +163,7 @@ struct DeviceEntry: Identifiable, Equatable {
     let companyID: UInt16?
     let txPower: Int?
     let isConnectable: Bool?
-    /// it connected to us as a host (BLE central) seen via subscribe/read/write
     let isHostConnected: Bool
-    /// we connected to it in the central role
     let isCentralConnected: Bool
     let isBlocked: Bool
 

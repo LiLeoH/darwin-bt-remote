@@ -5,7 +5,7 @@ private let keyHeight: CGFloat = 44
 struct KeyboardView: View {
     let goToSetup: () -> Void
 
-    @EnvironmentObject private var ble: HIDPeripheral
+    @EnvironmentObject private var lowEnergy: HIDPeripheral
     @EnvironmentObject private var central: HIDCentral
     #if os(macOS)
         @EnvironmentObject private var classic: HIDClassicDevice
@@ -22,9 +22,9 @@ struct KeyboardView: View {
 
     private var hid: HIDInput {
         #if os(macOS)
-            return HIDInput.make(ble: ble, central: central, classic: classic, classicMode: macTransport == .classic)
+            return HIDInput.make(lowEnergy: lowEnergy, central: central, classic: classic, classicMode: macTransport == .classic)
         #else
-            return HIDInput.make(ble: ble, central: central)
+            return HIDInput.make(lowEnergy: lowEnergy, central: central)
         #endif
     }
 
@@ -156,8 +156,6 @@ struct KeyboardView: View {
         }
     }
 
-    // key rows
-
     private let fKeys: [(Keycode, String)] = [
         (.f1, "F1"), (.f2, "F2"), (.f3, "F3"), (.f4, "F4"), (.f5, "F5"), (.f6, "F6"),
         (.f7, "F7"), (.f8, "F8"), (.f9, "F9"), (.f10, "F10"), (.f11, "F11"), (.f12, "F12")
@@ -199,8 +197,6 @@ struct KeyboardView: View {
             KeyCap(.symbol("control"), L10n.Keyboard.ctrl, .modifier(.rightCtrl))
         ]
     }
-
-    // actions
 
     private func press(_ key: Keycode) {
         typist.send = hid.sendKeyboard

@@ -24,7 +24,7 @@ private struct ConsumerButton {
 struct RemoteView: View {
     let goToSetup: () -> Void
 
-    @EnvironmentObject private var ble: HIDPeripheral
+    @EnvironmentObject private var lowEnergy: HIDPeripheral
     @EnvironmentObject private var central: HIDCentral
     @AppStorage(AppSettings.touchpadSensitivityKey) private var touchpadSensitivity = AppSettings.defaultPointerSensitivity
     @AppStorage(AppSettings.scrollSensitivityKey) private var scrollSensitivity = AppSettings.defaultScrollSensitivity
@@ -37,9 +37,9 @@ struct RemoteView: View {
 
     private var hid: HIDInput {
         #if os(macOS)
-            return HIDInput.make(ble: ble, central: central, classic: classic, classicMode: macTransport == .classic)
+            return HIDInput.make(lowEnergy: lowEnergy, central: central, classic: classic, classicMode: macTransport == .classic)
         #else
-            return HIDInput.make(ble: ble, central: central)
+            return HIDInput.make(lowEnergy: lowEnergy, central: central)
         #endif
     }
 
@@ -102,8 +102,6 @@ struct RemoteView: View {
         .padding(.vertical, 8)
     }
 
-    // media pill: rewind, play/pause, forward
-
     private var mediaPill: some View {
         HStack(spacing: 0) {
             consumerMember(.init(.rewind, "backward.fill", L10n.Media.rewind))
@@ -112,8 +110,6 @@ struct RemoteView: View {
         }
         .background(RoundedRectangle(cornerRadius: 26).fill(groupFill))
     }
-
-    // grid: volume column, number pad, channel column
 
     private var grid: some View {
         HStack(spacing: cellGap) {
@@ -166,8 +162,6 @@ struct RemoteView: View {
         .background(Capsule().fill(groupFill))
     }
 
-    // bottom row: back, home, 0, menu, power
-
     private var bottomRow: some View {
         HStack(spacing: cellGap) {
             consumerCircle(.init(.acBack, "arrow.left", L10n.Remote.back))
@@ -177,8 +171,6 @@ struct RemoteView: View {
             consumerCircle(.init(.power, "power", L10n.Remote.power))
         }
     }
-
-    // touchpad + scroll column + mouse buttons
 
     private var touchpadBlock: some View {
         VStack(spacing: cellGap) {
@@ -242,8 +234,6 @@ struct RemoteView: View {
             mouseButton(.right, L10n.Mouse.rightButton)
         }
     }
-
-    // button builders
 
     private func consumerCircle(_ button: ConsumerButton) -> some View {
         HoldButton(

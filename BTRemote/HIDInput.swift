@@ -4,7 +4,7 @@ import Foundation
     import UIKit
 #endif
 
-/// routes UI input to the active HID backend (BLE, or classic on macOS)
+/// routes UI input to the active HID backend (low energy, or classic on macOS)
 struct HIDInput {
     let sendMouse: (MouseReport) -> Void
     let sendKeyboard: (KeyboardReport) -> Void
@@ -39,7 +39,6 @@ struct HIDInput {
         sendMouse(.zero)
     }
 
-    /// send one printable character as a key down + up
     func type(_ character: Character) {
         guard let (key, mods) = mapASCII(character) else { return }
         sendKeyboard(KeyboardReport(modifiers: mods, keys: [key]))
@@ -52,7 +51,6 @@ struct HIDInput {
         return [KeyboardReport(modifiers: mods.union(modifiers), keys: [key]), .zero]
     }
 
-    /// down + up reports for a single key
     static func keyReports(for key: Keycode, modifiers: KeyboardModifiers = []) -> [KeyboardReport] {
         [KeyboardReport(modifiers: modifiers, keys: [key]), .zero]
     }
@@ -73,8 +71,8 @@ struct HIDInput {
 extension HIDInput {
     #if os(macOS)
         @MainActor
-        static func make(ble: HIDPeripheral, central: HIDCentral, classic: HIDClassicDevice, classicMode: Bool) -> HIDInput {
-            guard classicMode else { return _ble(ble, central) }
+        static func make(lowEnergy: HIDPeripheral, central: HIDCentral, classic: HIDClassicDevice, classicMode: Bool) -> HIDInput {
+            guard classicMode else { return _lowEnergy(lowEnergy, central) }
             return HIDInput(
                 sendMouse: { classic.sendMouse($0) },
                 sendKeyboard: { classic.sendKeyboard($0) },
@@ -88,22 +86,22 @@ extension HIDInput {
         }
     #else
         @MainActor
-        static func make(ble: HIDPeripheral, central: HIDCentral) -> HIDInput {
-            _ble(ble, central)
+        static func make(lowEnergy: HIDPeripheral, central: HIDCentral) -> HIDInput {
+            _lowEnergy(lowEnergy, central)
         }
     #endif
 
     @MainActor
-    private static func _ble(_ ble: HIDPeripheral, _ central: HIDCentral) -> HIDInput {
+    private static func _lowEnergy(_ lowEnergy: HIDPeripheral, _ central: HIDCentral) -> HIDInput {
         HIDInput(
-            sendMouse: { ble.sendMouse($0) },
-            sendKeyboard: { ble.sendKeyboard($0) },
-            sendConsumer: { ble.sendConsumer($0) },
-            updateBattery: { ble.updateBatteryLevel($0) },
-            isActive: ble.isHIDServiceAdded,
-            isConnected: ble.connectedCentrals.contains { !ble.blockedCentrals.contains($0) } || !central.connected.isEmpty,
-            activeError: ble.lastError ?? central.lastError,
-            batteryLevel: ble.batteryLevel
+            sendMouse: { lowEnergy.sendMouse($0) },
+            sendKeyboard: { lowEnergy.sendKeyboard($0) },
+            sendConsumer: { lowEnergy.sendConsumer($0) },
+            updateBattery: { lowEnergy.updateBatteryLevel($0) },
+            isActive: lowEnergy.isHIDServiceAdded,
+            isConnected: lowEnergy.connectedCentrals.contains { !lowEnergy.blockedCentrals.contains($0) } || !central.connected.isEmpty,
+            activeError: lowEnergy.lastError ?? central.lastError,
+            batteryLevel: lowEnergy.batteryLevel
         )
     }
 }

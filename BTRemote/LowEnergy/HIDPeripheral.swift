@@ -154,12 +154,10 @@ final class HIDPeripheral: NSObject, ObservableObject {
         return service
     }
 
-    /// builds the HID service
     private func buildHIDService(includingBattery battery: CBMutableService?) -> CBMutableService {
         let service = CBMutableService(type: HIDProfile.hidService, primary: true)
         if let battery { service.includedServices = [battery] }
 
-        // 1: read-only control point
         let controlPoint = CBMutableCharacteristic(
             type: HIDProfile.hidControlPoint,
             properties: .read,
@@ -167,7 +165,6 @@ final class HIDPeripheral: NSObject, ObservableObject {
             permissions: .readEncryptionRequired
         )
 
-        // 2: protocol mode
         let protocolMode = CBMutableCharacteristic(
             type: HIDProfile.protocolMode,
             properties: [.read, .writeWithoutResponse],
@@ -175,7 +172,6 @@ final class HIDPeripheral: NSObject, ObservableObject {
             permissions: [.readEncryptionRequired, .writeEncryptionRequired]
         )
 
-        // 3: HID info
         let hidInfo = CBMutableCharacteristic(
             type: HIDProfile.hidInformation,
             properties: .read,
@@ -183,7 +179,6 @@ final class HIDPeripheral: NSObject, ObservableObject {
             permissions: .readEncryptionRequired
         )
 
-        // 4-6: boot mode characteristics
         let bootMouseInput = CBMutableCharacteristic(
             type: HIDProfile.bootMouseInputReport,
             properties: [.read, .notifyEncryptionRequired],
@@ -318,14 +313,12 @@ final class HIDPeripheral: NSObject, ObservableObject {
         }
     }
 
-    /// diagnostic logging
     private func _trace(_ message: @autoclosure () -> String) {
         guard UserDefaults.standard.bool(forKey: AppSettings.developerModeKey) else { return }
         let text = message()
         log.info("\(text, privacy: .public)")
     }
 
-    /// records a central we just heard from
     private func _trackInteraction(from central: CBCentral) {
         centralObjects[central.identifier] = central
         guard !connectedCentrals.contains(central.identifier) else { return }

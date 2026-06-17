@@ -18,7 +18,6 @@ final class HIDCentral: NSObject, ObservableObject {
     private var centralManager: CBCentralManager?
     private var peripheralCache: [UUID: CBPeripheral] = [:]
 
-    /// diagnostic logging
     private func _trace(_ message: @autoclosure () -> String) {
         guard UserDefaults.standard.bool(forKey: AppSettings.developerModeKey) else { return }
         let text = message()

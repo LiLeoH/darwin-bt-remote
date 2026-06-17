@@ -2,21 +2,21 @@ import SwiftUI
 
 #if os(macOS)
     enum TransportMode: String, CaseIterable, Codable {
-        case classic // classic
-        case ble // low energy
+        case classic
+        case lowEnergy
 
-        static let defaultMode: TransportMode = .ble
+        static let defaultMode: TransportMode = .lowEnergy
     }
 #endif
 
 @main
 struct BTRemoteApp: App {
     #if os(iOS)
-        @StateObject private var ble = HIDPeripheral()
+        @StateObject private var lowEnergy = HIDPeripheral()
         @StateObject private var central = HIDCentral()
         @AppStorage(AppSettings.autoAdvertiseKey) private var autoAdvertise = true
     #else
-        @StateObject private var ble = HIDPeripheral()
+        @StateObject private var lowEnergy = HIDPeripheral()
         @StateObject private var central = HIDCentral()
         @StateObject private var classic = HIDClassicDevice()
         @AppStorage("BTRemote.macTransportMode") private var modeRaw: String = TransportMode.defaultMode.rawValue
@@ -26,15 +26,15 @@ struct BTRemoteApp: App {
         WindowGroup {
             #if os(iOS)
                 ContentView()
-                    .environmentObject(ble)
+                    .environmentObject(lowEnergy)
                     .environmentObject(central)
                     .onAppear {
                         central.start()
-                        if autoAdvertise { ble.start() }
+                        if autoAdvertise { lowEnergy.start() }
                     }
             #else
                 ContentView()
-                    .environmentObject(ble)
+                    .environmentObject(lowEnergy)
                     .environmentObject(central)
                     .environmentObject(classic)
                     .environment(\.macTransport, currentMode)
@@ -53,22 +53,22 @@ struct BTRemoteApp: App {
             switch currentMode {
             case .classic:
                 classic.start()
-            case .ble:
-                ble.start()
+            case .lowEnergy:
+                lowEnergy.start()
                 central.start()
             }
         }
 
         private func _modeChanged() {
             // tear down the previously-active backend to prevent race
-            ble.stop()
+            lowEnergy.stop()
             classic.stop()
 
             switch currentMode {
             case .classic:
                 classic.start()
-            case .ble:
-                ble.start()
+            case .lowEnergy:
+                lowEnergy.start()
                 central.start()
             }
         }

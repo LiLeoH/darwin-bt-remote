@@ -1,7 +1,6 @@
 import CoreBluetooth
 import Foundation
 
-/// resolves SIG company IDs and service UUIDs via bundled database
 enum BluetoothNumbers {
     static func company(_ code: UInt16) -> String? {
         companies[code]

@@ -7,7 +7,7 @@ import os
 import SwiftUI
 
 /// classic (macOS): publish a classic HID Profile 1.1 SDP record then open L2CAP control/interrupt channels to the paired host and emit HID reports
-/// LE: macOS dual-mode controller advertises the public BD address with the BR/EDR-supported flag set, so the paired host can merge LE entry with BR/EDR record, but finds no HID profile as the host only looks for classic mode
+/// low energy: macOS dual-mode controller advertises the public BD address with the BR/EDR-supported flag set, so the paired host can merge the low energy entry with the BR/EDR record, but finds no HID profile as the host only looks for classic mode
 @MainActor
 final class HIDClassicDevice: NSObject, ObservableObject {
     @Published private(set) var state: ControllerState = .unknown
@@ -39,7 +39,6 @@ final class HIDClassicDevice: NSObject, ObservableObject {
     /// SET_IDLE rate; stored and echoed, not enforced
     private var idleRate: UInt8 = 0
 
-    /// to persist the curated device list
     private static let storedDevicesKey = "BTRemote.classic.devices.v1"
     private let defaults: UserDefaults = .standard
 
@@ -55,7 +54,6 @@ final class HIDClassicDevice: NSObject, ObservableObject {
         private enum CodingKeys: String, CodingKey { case id, name }
     }
 
-    // lifecycle
     func start() {}
 
     func stop() {
@@ -91,10 +89,7 @@ final class HIDClassicDevice: NSObject, ObservableObject {
         isSDPPublished = false
     }
 
-    // paired-device picker support
-
-    /// the device list comes from JSON array persisted in NSUserDefaults
-    /// only show peers explicitly added through the pair modal
+    /// only show peers explicitly added through the pair modal, not the system paired list
     func refreshPairedDevices() {
         var collected = _loadStoredDevices()
         for i in collected.indices {
@@ -104,7 +99,6 @@ final class HIDClassicDevice: NSObject, ObservableObject {
     }
 
     /// calls a private BOOL getter on IOBluetoothDevice via KVC
-    /// returns false if selector missing
     nonisolated fileprivate static func _privateBool(_ object: AnyObject, key: String) -> Bool {
         guard let ns = object as? NSObject else { return false }
         let value = ns.value(forKey: key)
@@ -126,7 +120,6 @@ final class HIDClassicDevice: NSObject, ObservableObject {
         return dev.isConnected()
     }
 
-    /// append a device the user just paired via the modal; no-op if already present
     private func _rememberDevice(_ entry: PairedDevice) {
         var list = _loadStoredDevices()
         if list.contains(where: { $0.id == entry.id }) { return }
@@ -142,9 +135,7 @@ final class HIDClassicDevice: NSObject, ObservableObject {
         refreshPairedDevices()
     }
 
-    /// system device selector + pair UI (IOBluetoothDeviceSelectorController)
     /// temporarily flips Class of Device so remote scanners recognize it as a HID device during handshake
-    /// returns the IOBluetoothDevice the user selected, if any
     @discardableResult
     func presentPairingPicker() -> PairedDevice? {
         // get selector first, then publishService, then setCoD
@@ -249,7 +240,6 @@ final class HIDClassicDevice: NSObject, ObservableObject {
         isConnecting = false
     }
 
-    // report emission (same surface as HIDPeripheral)
     func sendMouse(_ report: MouseReport) {
         _sendInputReport(.mouse, payload: report.data)
     }
@@ -273,7 +263,6 @@ final class HIDClassicDevice: NSObject, ObservableObject {
         _sendInputReport(.battery, payload: Data([clamped]))
     }
 
-    // internals
     private func _refreshState() {
         let host = IOBluetoothHostController.default()
         guard let power = host?.powerState else { state = .unknown; return }
@@ -333,7 +322,6 @@ final class HIDClassicDevice: NSObject, ObservableObject {
     }
 }
 
-// IOBluetoothL2CAPChannelDelegate
 extension HIDClassicDevice: @preconcurrency IOBluetoothL2CAPChannelDelegate {
     func l2capChannelOpenComplete(_ channel: IOBluetoothL2CAPChannel!, status error: IOReturn) {
         if error != kIOReturnSuccess {
@@ -435,7 +423,6 @@ extension HIDClassicDevice: @preconcurrency IOBluetoothL2CAPChannelDelegate {
         case errFatal = 0x0F
     }
 
-    /// HID HANDSHAKE message
     private func _sendControlHandshake(status: HandshakeStatus) {
         guard let controlChannel else { return }
         var byte: UInt8 = status.rawValue

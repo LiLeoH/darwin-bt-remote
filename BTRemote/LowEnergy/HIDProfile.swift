@@ -1,7 +1,7 @@
 import CoreBluetooth
 import Foundation
 
-/// HID profile constants shared between BLE/HOGP and classic modes
+/// HID profile constants shared between low energy (HOGP) and classic modes
 enum HIDProfile {
     // use full UUID strings: CBPeripheralManager rejects short-form service UUIDs
 

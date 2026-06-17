@@ -2,7 +2,7 @@ import CoreBluetooth
 import SwiftUI
 
 struct SetupView: View {
-    @EnvironmentObject private var ble: HIDPeripheral
+    @EnvironmentObject private var lowEnergy: HIDPeripheral
     @EnvironmentObject private var central: HIDCentral
     @AppStorage(AppSettings.developerModeKey) private var developerMode = false
     #if os(macOS)
@@ -21,9 +21,9 @@ struct SetupView: View {
 
     private var hid: HIDInput {
         #if os(macOS)
-            return HIDInput.make(ble: ble, central: central, classic: classic, classicMode: classicMode)
+            return HIDInput.make(lowEnergy: lowEnergy, central: central, classic: classic, classicMode: classicMode)
         #else
-            return HIDInput.make(ble: ble, central: central)
+            return HIDInput.make(lowEnergy: lowEnergy, central: central)
         #endif
     }
 
@@ -84,12 +84,11 @@ struct SetupView: View {
         }
     }
 
-    // transport mode picker (macOS)
     #if os(macOS)
         private var transportModeSection: some View {
             Section {
                 Picker(selection: $modeRaw) {
-                    Text(L10n.TransportMode.ble).tag(TransportMode.ble.rawValue)
+                    Text(L10n.TransportMode.lowEnergy).tag(TransportMode.lowEnergy.rawValue)
                     Text(L10n.TransportMode.classic).tag(TransportMode.classic.rawValue)
                 } label: {
                     Text(L10n.TransportMode.label)
@@ -98,12 +97,11 @@ struct SetupView: View {
             } header: {
                 Text(L10n.TransportMode.section)
             } footer: {
-                Text(classicMode ? L10n.TransportMode.classicCompatibility : L10n.TransportMode.bleCompatibility)
+                Text(classicMode ? L10n.TransportMode.classicCompatibility : L10n.TransportMode.lowEnergyCompatibility)
             }
         }
     #endif
 
-    // status
     private var statusSection: some View {
         Section(header: Text(L10n.Section.status)) {
             if classicMode {
@@ -118,27 +116,26 @@ struct SetupView: View {
                     EmptyView()
                 #endif
             } else {
-                row(L10n.Status.bluetooth, Text(ble.state.localizedLabel))
-                row(L10n.Status.advertising, Text(ble.isAdvertising ? L10n.Value.yes : L10n.Value.no))
+                row(L10n.Status.bluetooth, Text(lowEnergy.state.localizedLabel))
+                row(L10n.Status.advertising, Text(lowEnergy.isAdvertising ? L10n.Value.yes : L10n.Value.no))
                 if developerMode {
-                    row(L10n.Status.hidService, Text(ble.isHIDServiceAdded ? L10n.Status.hidServiceAdded : L10n.Value.none))
-                    row(L10n.Status.subscribedCentrals, Text(ble.subscribedCentrals.count, format: .number))
+                    row(L10n.Status.hidService, Text(lowEnergy.isHIDServiceAdded ? L10n.Status.hidServiceAdded : L10n.Value.none))
+                    row(L10n.Status.subscribedCentrals, Text(lowEnergy.subscribedCentrals.count, format: .number))
                     row(L10n.Status.connectedPeripherals, Text(central.connected.count, format: .number))
-                    row(L10n.Status.hostLEDs, Text(verbatim: ble.keyboardLEDs.localizedLabel))
+                    row(L10n.Status.hostLEDs, Text(verbatim: lowEnergy.keyboardLEDs.localizedLabel))
                 }
             }
         }
     }
 
-    // BLE UI
     private var connectionSection: some View {
         Section(header: Text(L10n.Section.connection)) {
-            if ble.isAdvertising {
-                Button(role: .destructive) { ble.stop() } label: {
+            if lowEnergy.isAdvertising {
+                Button(role: .destructive) { lowEnergy.stop() } label: {
                     Label(L10n.Action.stopAdvertising, systemImage: "stop.circle")
                 }
             } else {
-                Button { ble.start() } label: {
+                Button { lowEnergy.start() } label: {
                     Label(L10n.Action.startAdvertising, systemImage: "antenna.radiowaves.left.and.right")
                 }
             }
@@ -150,7 +147,6 @@ struct SetupView: View {
         }
     }
 
-    // classic UI
     #if os(macOS)
         private var pairedDevicesSection: some View {
             Section(header: Text(L10n.Classic.pairedDevicesSection)) {

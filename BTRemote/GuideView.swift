@@ -57,14 +57,14 @@ struct GuideView: View {
     #if os(macOS)
         private var about: LocalizedStringKey {
             switch transport {
-            case .lowEnergy: L10n.TransportMode.bleAbout
+            case .lowEnergy: L10n.TransportMode.lowEnergyAbout
             case .classic: L10n.TransportMode.classicAbout
             }
         }
 
         private var compatibility: LocalizedStringKey {
             switch transport {
-            case .lowEnergy: L10n.TransportMode.bleCompatibility
+            case .lowEnergy: L10n.TransportMode.lowEnergyCompatibility
             case .classic: L10n.TransportMode.classicCompatibility
             }
         }
