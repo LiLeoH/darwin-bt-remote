@@ -28,6 +28,7 @@ struct RemoteView: View {
     @EnvironmentObject private var central: HIDCentral
     @AppStorage(AppSettings.touchpadSensitivityKey) private var touchpadSensitivity = AppSettings.defaultPointerSensitivity
     @AppStorage(AppSettings.scrollSensitivityKey) private var scrollSensitivity = AppSettings.defaultScrollSensitivity
+    @AppStorage(AppSettings.developerModeKey) private var developerMode = false
     #if os(macOS)
         @EnvironmentObject private var classic: HIDClassicDevice
         @Environment(\.macTransport) private var macTransport
@@ -61,7 +62,7 @@ struct RemoteView: View {
 
     @ViewBuilder
     private var screen: some View {
-        if hid.isActive {
+        if hid.isActive || developerMode {
             controls
         } else {
             emptyState

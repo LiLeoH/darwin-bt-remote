@@ -57,8 +57,28 @@ extension L10n {
             "setup.guide"
         }
 
-        static var howToConnect: LocalizedStringKey {
-            "setup.how_to_connect"
+        static var lowEnergyGuide: LocalizedStringKey {
+            "setup.le_guide"
+        }
+
+        static var classicGuide: LocalizedStringKey {
+            "setup.classic_guide"
+        }
+
+        static var classicStep1: LocalizedStringKey {
+            "setup.classic_step1"
+        }
+
+        static var classicStep2: LocalizedStringKey {
+            "setup.classic_step2"
+        }
+
+        static var classicStep3: LocalizedStringKey {
+            "setup.classic_step3"
+        }
+
+        static var classicTroubleshooting: LocalizedStringKey {
+            "setup.classic_troubleshooting"
         }
 
         static var fromApp: LocalizedStringKey {

@@ -464,12 +464,20 @@ enum L10n {
             "transport_mode.ble"
         }
 
-        static var classicHint: LocalizedStringKey {
-            "transport_mode.classic.hint"
+        static var classicAbout: LocalizedStringKey {
+            "transport_mode.classic.about"
         }
 
-        static var bleHint: LocalizedStringKey {
-            "transport_mode.ble.hint"
+        static var bleAbout: LocalizedStringKey {
+            "transport_mode.ble.about"
+        }
+
+        static var classicCompatibility: LocalizedStringKey {
+            "transport_mode.classic.compatibility"
+        }
+
+        static var bleCompatibility: LocalizedStringKey {
+            "transport_mode.ble.compatibility"
         }
     }
 

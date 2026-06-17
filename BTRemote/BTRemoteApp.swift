@@ -2,8 +2,10 @@ import SwiftUI
 
 #if os(macOS)
     enum TransportMode: String, CaseIterable, Codable {
-        case classic // BR/EDR HID
-        case ble // HOGP over LE (iCloud)
+        case classic // classic
+        case ble // low energy
+
+        static let defaultMode: TransportMode = .ble
     }
 #endif
 
@@ -17,7 +19,7 @@ struct BTRemoteApp: App {
         @StateObject private var ble = HIDPeripheral()
         @StateObject private var central = HIDCentral()
         @StateObject private var classic = HIDClassicDevice()
-        @AppStorage("BTRemote.macTransportMode") private var modeRaw: String = TransportMode.classic.rawValue
+        @AppStorage("BTRemote.macTransportMode") private var modeRaw: String = TransportMode.defaultMode.rawValue
     #endif
 
     var body: some Scene {
@@ -44,7 +46,7 @@ struct BTRemoteApp: App {
 
     #if os(macOS)
         private var currentMode: TransportMode {
-            TransportMode(rawValue: modeRaw) ?? .classic
+            TransportMode(rawValue: modeRaw) ?? .defaultMode
         }
 
         private func _onAppear() {
@@ -75,7 +77,7 @@ struct BTRemoteApp: App {
 
 #if os(macOS)
     private struct MacTransportKey: EnvironmentKey {
-        static let defaultValue: TransportMode = .classic
+        static let defaultValue: TransportMode = .defaultMode
     }
 
     extension EnvironmentValues {

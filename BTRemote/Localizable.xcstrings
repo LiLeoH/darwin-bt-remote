@@ -115,13 +115,68 @@
         }
       }
     },
-    "setup.how_to_connect" : {
+    "setup.le_guide" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connecting"
+            "value" : "Connect via Bluetooth Low Energy"
+          }
+        }
+      }
+    },
+    "setup.classic_guide" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect via Bluetooth Classic"
+          }
+        }
+      }
+    },
+    "setup.classic_step1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Under Paired Devices, click \"Pair New Device\", or pair from System Settings."
+          }
+        }
+      }
+    },
+    "setup.classic_step2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select the device you want to use in the window that appears. Make sure the target device is discoverable by going to the Bluetooth screen on the target device."
+          }
+        }
+      }
+    },
+    "setup.classic_step3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select \"Connect\" to establish a connection. You may need to wait a few seconds before it activates. Occasionally you may want to try again by clicking \"Connect\" a second time if it fails to activate."
+          }
+        }
+      }
+    },
+    "setup.classic_troubleshooting" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If the device still does not respond, remove the pairing on both this device and the target device, then pair again."
           }
         }
       }
@@ -154,7 +209,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tap the device to connect."
+            "value" : "Tap the device to connect. You may identify the device by using the information button."
           }
         }
       }
@@ -649,7 +704,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Press Control + Option to release capture."
+            "value" : "Press ⌃ + ⌥ (control + option) keys together to release capture."
           }
         }
       }
@@ -814,29 +869,51 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "BLE"
+            "value" : "Low Energy"
           }
         }
       }
     },
-    "transport_mode.classic.hint" : {
+    "transport_mode.classic.about" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Classic Bluetooth HID (BR/EDR)."
+            "value" : "HID (BR/EDR) using Bluetooth Classic."
           }
         }
       }
     },
-    "transport_mode.ble.hint" : {
+    "transport_mode.classic.compatibility" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "HID-over-GATT (LE). Works with iCloud devices."
+            "value" : "For use with Apple devices (iOS, iPadOS, or macOS), or Linux, Android, and ChromeOS only. For other devices, use Low Energy mode instead."
+          }
+        }
+      }
+    },
+    "transport_mode.ble.about" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HID over GATT (HOGP) using Bluetooth Low Energy (BLE)."
+          }
+        }
+      }
+    },
+    "transport_mode.ble.compatibility" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For use with Apple devices (iOS, iPadOS, or macOS), or Windows only. For other devices, use Classic mode instead."
           }
         }
       }
@@ -979,7 +1056,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "BT Remote will appear as a keyboard / mouse on the device you pair."
+            "value" : "BT Remote will appear as a keyboard or mouse on the device you pair."
           }
         }
       }

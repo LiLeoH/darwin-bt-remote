@@ -7,8 +7,7 @@ import os
 import SwiftUI
 
 /// classic (macOS): publish a classic HID Profile 1.1 SDP record then open L2CAP control/interrupt channels to the paired host and emit HID reports
-///
-/// LE mode: macOS dual-mode controller advertises the public BD address with the BR/EDR-supported flag set, so the paired host can merge LE entry with BR/EDR record, but finds no HID profile as the host only looks for classic mode
+/// LE: macOS dual-mode controller advertises the public BD address with the BR/EDR-supported flag set, so the paired host can merge LE entry with BR/EDR record, but finds no HID profile as the host only looks for classic mode
 @MainActor
 final class HIDClassicDevice: NSObject, ObservableObject {
     @Published private(set) var state: ControllerState = .unknown
@@ -28,13 +27,17 @@ final class HIDClassicDevice: NSObject, ObservableObject {
     private var interruptChannel: IOBluetoothL2CAPChannel?
     @Published private(set) var isConnecting = false
 
-    /// PSM whose async open is in flight; used to route the delegate callback
-    private var openingPSM: UInt16?
-    private var connectTimeoutWork: DispatchWorkItem?
-
-    /// openL2CAPChannelSync's internal waitforChanneOpen spins when the remote never opens (no HID Host service)
-    /// openL2CAPChannelAsync returns immediately and delivers via l2capChannelOpenComplete; watchdog added so the open is bounded if delegate is never invoked
-    private static let connectTimeout: TimeInterval = 5.0
+    /// answers GET_REPORT; seeded so a GET before any input still returns a valid report
+    private var lastReports: [UInt8: Data] = [
+        ReportID.mouse.rawValue: MouseReport.zero.data,
+        ReportID.keyboard.rawValue: KeyboardReport.zero.data,
+        ReportID.systemControl.rawValue: SystemControlReport.zero.data,
+        ReportID.consumerControl.rawValue: ConsumerReport.zero.data
+    ]
+    /// SET_PROTOCOL mode: 0x00 boot, 0x01 report
+    private var protocolMode: UInt8 = 0x01
+    /// SET_IDLE rate; stored and echoed, not enforced
+    private var idleRate: UInt8 = 0
 
     /// to persist the curated device list
     private static let storedDevicesKey = "BTRemote.classic.devices.v1"
@@ -189,6 +192,7 @@ final class HIDClassicDevice: NSObject, ObservableObject {
         let addressStr = target.addressString ?? "?"
         log.info("opening ACL to \(addressStr, privacy: .public)")
 
+        // HID requires an authenticated, encrypted ACL before the L2CAP channels; openConnection establishes it
         if !target.isConnected() {
             let aclResult = target.openConnection()
             if aclResult != kIOReturnSuccess {
@@ -242,6 +246,7 @@ final class HIDClassicDevice: NSObject, ObservableObject {
         device = nil
         connectedAddress = nil
         isReady = false
+        isConnecting = false
     }
 
     // report emission (same surface as HIDPeripheral)
@@ -306,6 +311,7 @@ final class HIDClassicDevice: NSObject, ObservableObject {
 
     /// HID Interrupt PDU: header 0xA1 (DATA / INPUT) + reportID + payload
     private func _sendInputReport(_ reportID: ReportID, payload: Data) {
+        lastReports[reportID.rawValue] = payload
         guard let interruptChannel else { return }
         var buffer = Data(capacity: 2 + payload.count)
         buffer.append(0xA1)
@@ -365,27 +371,56 @@ extension HIDClassicDevice: @preconcurrency IOBluetoothL2CAPChannelDelegate {
         }
     }
 
-    /// host writes flow over PSM 0x11 (Control)
-    /// spec mandates responding with HID HANDSHAKE byte for every well-formed message on control channel
-    /// for any recognized transaction it passes status 0
+    /// HIDP transaction routing keyed on the header's high nibble (BT HID profile 1.1)
     private func _handleHostMessage(on channel: IOBluetoothL2CAPChannel, bytes: Data) {
         guard let header = bytes.first else { return }
-        let transaction = header >> 4
-        let reportTypeParam = header & 0x03
-
-        // extract LED state from SET_REPORT/output before responding
-        if transaction == 0x5 || transaction == 0xA {
-            if reportTypeParam == 0x02, bytes.count >= 3 {
-                let reportID = bytes[1]
-                if reportID == ReportID.keyboardLEDs.rawValue {
-                    keyboardLEDs = KeyboardLEDs(byte: bytes[2])
-                }
-            }
-        }
-
-        // send HANDSHAKE response on control channel only
-        if channel.psm == 0x0011 {
+        switch header & 0xF0 {
+        case 0x00: // HANDSHAKE — device never initiates, ignore
+            break
+        case 0x10: // HID_CONTROL (no handshake reply)
+            if header & 0x0F == 0x05 { disconnect() } // VIRTUAL_CABLE_UNPLUG
+        case 0x40: // GET_REPORT
+            _handleGetReport(bytes)
+        case 0x50: // SET_REPORT
+            _applyOutputReport(bytes)
             _sendControlHandshake(status: .successful)
+        case 0x60: // GET_PROTOCOL
+            _sendControlData(header: 0xA0, payload: Data([protocolMode]))
+        case 0x70: // SET_PROTOCOL
+            protocolMode = header & 0x01
+            _sendControlHandshake(status: .successful)
+        case 0x80: // GET_IDLE
+            _sendControlData(header: 0xA0, payload: Data([idleRate]))
+        case 0x90: // SET_IDLE
+            if bytes.count >= 2 { idleRate = bytes[1] }
+            _sendControlHandshake(status: .successful)
+        case 0xA0: // DATA — host output report, no reply
+            _applyOutputReport(bytes)
+        default: // DATC / unknown
+            _sendControlHandshake(status: .errUnsupportedRequest)
+        }
+    }
+
+    /// GET_REPORT: low 2 bits = report type, next byte = report ID
+    private func _handleGetReport(_ bytes: Data) {
+        let reportType = bytes[0] & 0x03
+        let reportID = bytes.count >= 2 ? bytes[1] : 0
+        guard reportType == 0x01 else {
+            _sendControlHandshake(status: .errUnsupportedRequest)
+            return
+        }
+        guard let payload = lastReports[reportID] else {
+            _sendControlHandshake(status: .errInvalidReportID)
+            return
+        }
+        _sendControlData(header: 0xA0 | reportType, payload: Data([reportID]) + payload)
+    }
+
+    /// LED state from an output report (report type 0x02)
+    private func _applyOutputReport(_ bytes: Data) {
+        guard bytes[0] & 0x03 == 0x02, bytes.count >= 3 else { return }
+        if bytes[1] == ReportID.keyboardLEDs.rawValue {
+            keyboardLEDs = KeyboardLEDs(byte: bytes[2])
         }
     }
 
@@ -406,6 +441,17 @@ extension HIDClassicDevice: @preconcurrency IOBluetoothL2CAPChannelDelegate {
         var byte: UInt8 = status.rawValue
         withUnsafeMutablePointer(to: &byte) { ptr in
             _ = controlChannel.writeAsync(UnsafeMutableRawPointer(ptr), length: 1, refcon: nil)
+        }
+    }
+
+    private func _sendControlData(header: UInt8, payload: Data) {
+        guard let controlChannel else { return }
+        var buffer = Data([header])
+        buffer.append(payload)
+        let length = UInt16(buffer.count)
+        buffer.withUnsafeMutableBytes { raw in
+            guard let base = raw.baseAddress else { return }
+            _ = controlChannel.writeAsync(base, length: length, refcon: nil)
         }
     }
 }

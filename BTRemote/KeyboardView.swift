@@ -12,6 +12,7 @@ struct KeyboardView: View {
         @Environment(\.macTransport) private var macTransport
     #endif
 
+    @AppStorage(AppSettings.developerModeKey) private var developerMode = false
     @State private var text = ""
     @State private var sent = ""
     @State private var resetting = false
@@ -46,7 +47,7 @@ struct KeyboardView: View {
 
     @ViewBuilder
     private var screen: some View {
-        if hid.isActive {
+        if hid.isActive || developerMode {
             editor
         } else {
             emptyState

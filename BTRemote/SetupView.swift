@@ -7,13 +7,13 @@ struct SetupView: View {
     @AppStorage(AppSettings.developerModeKey) private var developerMode = false
     #if os(macOS)
         @EnvironmentObject private var classic: HIDClassicDevice
-        @AppStorage("BTRemote.macTransportMode") private var modeRaw: String = TransportMode.classic.rawValue
+        @AppStorage("BTRemote.macTransportMode") private var modeRaw: String = TransportMode.defaultMode.rawValue
         @StateObject private var directInput = DirectInputController()
     #endif
 
     private var classicMode: Bool {
         #if os(macOS)
-            return (TransportMode(rawValue: modeRaw) ?? .classic) == .classic
+            return (TransportMode(rawValue: modeRaw) ?? .defaultMode) == .classic
         #else
             return false
         #endif
@@ -49,6 +49,9 @@ struct SetupView: View {
     private var form: some View {
         Form {
             guideSection
+            #if os(macOS)
+                transportModeSection
+            #endif
             if classicMode {
                 #if os(macOS)
                     pairedDevicesSection
@@ -56,9 +59,6 @@ struct SetupView: View {
             } else {
                 connectionSection
             }
-            #if os(macOS)
-                transportModeSection
-            #endif
             statusSection
             #if os(macOS)
                 if hid.isActive { directInputSection }
@@ -73,25 +73,32 @@ struct SetupView: View {
 
     private var guideSection: some View {
         Section(header: Text(L10n.Setup.guide)) {
-            NavigationLink { GuideView() } label: {
-                Label(L10n.Setup.howToConnect, systemImage: "questionmark.circle")
+            NavigationLink { GuideView(transport: .lowEnergy) } label: {
+                Label(L10n.Setup.lowEnergyGuide, systemImage: "questionmark.circle")
             }
+            #if os(macOS)
+                NavigationLink { GuideView(transport: .classic) } label: {
+                    Label(L10n.Setup.classicGuide, systemImage: "questionmark.circle")
+                }
+            #endif
         }
     }
 
     // transport mode picker (macOS)
     #if os(macOS)
         private var transportModeSection: some View {
-            Section(header: Text(L10n.TransportMode.section)) {
+            Section {
                 Picker(selection: $modeRaw) {
-                    Text(L10n.TransportMode.classic).tag(TransportMode.classic.rawValue)
                     Text(L10n.TransportMode.ble).tag(TransportMode.ble.rawValue)
+                    Text(L10n.TransportMode.classic).tag(TransportMode.classic.rawValue)
                 } label: {
                     Text(L10n.TransportMode.label)
                 }
                 .pickerStyle(.segmented)
-                Text(classicMode ? L10n.TransportMode.classicHint : L10n.TransportMode.bleHint)
-                    .font(.caption).foregroundColor(.secondary)
+            } header: {
+                Text(L10n.TransportMode.section)
+            } footer: {
+                Text(classicMode ? L10n.TransportMode.classicCompatibility : L10n.TransportMode.bleCompatibility)
             }
         }
     #endif
