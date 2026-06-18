@@ -3,6 +3,7 @@ import SwiftUI
 
 struct DeviceInfoView: View {
     let entry: DeviceEntry
+    @EnvironmentObject private var names: DeviceNameStore
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -17,15 +18,17 @@ struct DeviceInfoView: View {
     private var content: some View {
         Form {
             Section(header: Text(L10n.DeviceInfo.device)) {
-                infoRow(L10n.DeviceInfo.name, Text(verbatim: entry.displayName))
-                infoRow(L10n.DeviceInfo.identifier, Text(verbatim: entry.id.uuidString))
-            }
-            Section(header: Text(L10n.DeviceInfo.manufacturer)) {
-                if let manufacturer = entry.manufacturer {
-                    Text(verbatim: manufacturer)
+                if entry.isHostConnected {
+                    NavigationLink {
+                        DeviceNameEditView(id: entry.id)
+                    } label: {
+                        infoRow(L10n.DeviceInfo.name, Text(verbatim: entry.displayName))
+                    }
                 } else {
-                    Text(L10n.Value.none).foregroundColor(.secondary)
+                    infoRow(L10n.DeviceInfo.name, Text(verbatim: entry.displayName))
                 }
+                infoRow(L10n.DeviceInfo.identifier, Text(verbatim: entry.id.uuidString))
+                infoRow(L10n.DeviceInfo.manufacturer, Text(verbatim: entry.manufacturer ?? L10n.Value.noneString))
             }
             if hasAdvertisement {
                 Section(header: Text(L10n.DeviceInfo.advertisement)) {
@@ -77,7 +80,38 @@ struct DeviceInfoView: View {
         HStack {
             Text(label)
             Spacer()
-            value.foregroundColor(.secondary).multilineTextAlignment(.trailing)
+            value.foregroundColor(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .textSelection(.enabled)
         }
+    }
+}
+
+private struct DeviceNameEditView: View {
+    let id: UUID
+    @EnvironmentObject private var names: DeviceNameStore
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        Form {
+            TextField(L10n.DeviceInfo.name, text: binding)
+                .focused($focused)
+        }
+        #if os(macOS)
+            .formStyle(.grouped)
+        #endif
+        .navigationTitle(L10n.DeviceInfo.name)
+        #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+        #endif
+            .onAppear { focused = true }
+    }
+
+    private var binding: Binding<String> {
+        Binding(
+            get: { names.name(for: id) ?? "" },
+            set: { names.setName($0, for: id) }
+        )
     }
 }

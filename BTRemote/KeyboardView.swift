@@ -89,6 +89,7 @@ struct KeyboardView: View {
                     .buttonStyle(.bordered)
             }
             keyPanel
+            TrackpadPanel(hid: hid).frame(maxHeight: .infinity)
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)

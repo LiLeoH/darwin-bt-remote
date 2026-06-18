@@ -4,6 +4,7 @@ import SwiftUI
 struct SetupView: View {
     @EnvironmentObject private var lowEnergy: HIDPeripheral
     @EnvironmentObject private var central: HIDCentral
+    @EnvironmentObject private var names: DeviceNameStore
     @AppStorage(AppSettings.developerModeKey) private var developerMode = false
     @State private var selectedInfo: DeviceEntry?
     #if os(macOS)
@@ -59,6 +60,9 @@ struct SetupView: View {
                 #endif
             } else {
                 connectionSection
+                if !lowEnergy.connectedCentrals.isEmpty {
+                    connectedDevicesSection
+                }
             }
             statusSection
             #if os(macOS)
@@ -144,20 +148,32 @@ struct SetupView: View {
             NavigationLink {
                 DeviceListView()
             } label: {
-                Label(L10n.Section.otherDevices, systemImage: "dot.radiowaves.left.and.right")
+                Label(L10n.Section.devices, systemImage: "dot.radiowaves.left.and.right")
             }
-            ForEach(_connectedHosts) { hostRow($0) }
+        }
+        .onAppear(perform: _seedAliasesFromScan)
+        .onChange(of: lowEnergy.connectedCentrals) { _ in _seedAliasesFromScan() }
+        .onChange(of: central.discovered) { _ in _seedAliasesFromScan() }
+    }
+
+    private var connectedDevicesSection: some View {
+        Section {
+            ForEach(_connectedDevices) { connectedDeviceRow($0) }
+        } footer: {
+            Text(L10n.Setup.activeLegend)
         }
     }
 
-    /// hosts that connected to us (peripheral role)
-    private var _connectedHosts: [DeviceEntry] {
+    /// hosts that connected to us (peripheral role); subscribed ones can receive input
+    private var _connectedDevices: [DeviceEntry] {
         lowEnergy.connectedCentrals
             .map { uuid in
-                DeviceEntry(
+                let alias = names.name(for: uuid)
+                let subscribed = lowEnergy.subscribedCentrals.keys.contains(uuid)
+                return DeviceEntry(
                     id: uuid,
-                    name: L10n.Device.connectedHostName,
-                    isNamed: true,
+                    name: alias ?? "",
+                    isNamed: alias != nil,
                     rssi: 0,
                     advertisedServices: [],
                     companyID: nil,
@@ -165,22 +181,27 @@ struct SetupView: View {
                     isConnectable: nil,
                     isHostConnected: true,
                     isCentralConnected: false,
-                    isBlocked: lowEnergy.blockedCentrals.contains(uuid)
+                    isConnecting: false,
+                    isSubscribed: subscribed,
+                    isActive: subscribed && !lowEnergy.inactiveCentrals.contains(uuid)
                 )
             }
             .sorted { $0.id.uuidString < $1.id.uuidString }
     }
 
-    private func hostRow(_ entry: DeviceEntry) -> some View {
-        DeviceRow(
-            entry: entry,
-            action: { lowEnergy.toggleBlocked(entry.id) },
-            onInfo: { selectedInfo = entry }
-        ) {
-            if entry.isBlocked {
-                Text(L10n.Device.muted).font(.caption).foregroundColor(.secondary)
-            }
+    private func _seedAliasesFromScan() {
+        for uuid in lowEnergy.connectedCentrals where names.name(for: uuid) == nil {
+            guard let scanned = central.discovered.first(where: { $0.id == uuid && $0.isNamed })?.name else { continue }
+            names.setName(scanned, for: uuid)
         }
+    }
+
+    private func connectedDeviceRow(_ entry: DeviceEntry) -> some View {
+        ConnectedDeviceRow(
+            entry: entry,
+            onToggle: { lowEnergy.toggleActive(entry.id) },
+            onInfo: { selectedInfo = entry }
+        )
     }
 
     #if os(macOS)
@@ -327,10 +348,12 @@ private extension KeyboardLEDs {
             SetupView()
                 .environmentObject(HIDPeripheral())
                 .environmentObject(HIDCentral())
+                .environmentObject(DeviceNameStore())
         #else
             SetupView()
                 .environmentObject(HIDPeripheral())
                 .environmentObject(HIDCentral())
+                .environmentObject(DeviceNameStore())
                 .environmentObject(HIDClassicDevice())
         #endif
     }

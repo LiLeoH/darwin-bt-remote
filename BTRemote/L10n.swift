@@ -66,6 +66,26 @@ enum L10n {
         static var closedCaptions: LocalizedStringKey {
             "remote.closed_captions"
         }
+
+        static var up: LocalizedStringKey {
+            "remote.up"
+        }
+
+        static var down: LocalizedStringKey {
+            "remote.down"
+        }
+
+        static var left: LocalizedStringKey {
+            "remote.left"
+        }
+
+        static var right: LocalizedStringKey {
+            "remote.right"
+        }
+
+        static var select: LocalizedStringKey {
+            "remote.select"
+        }
     }
 
     enum Section {
@@ -83,30 +103,6 @@ enum L10n {
 
         static var devices: LocalizedStringKey {
             "section.devices"
-        }
-
-        static var otherDevices: LocalizedStringKey {
-            "section.other_devices"
-        }
-
-        static var connectedDevices: LocalizedStringKey {
-            "section.connected_devices"
-        }
-
-        static var nearby: LocalizedStringKey {
-            "section.nearby"
-        }
-
-        static var keyboard: LocalizedStringKey {
-            "section.keyboard"
-        }
-
-        static var mouse: LocalizedStringKey {
-            "section.mouse"
-        }
-
-        static var media: LocalizedStringKey {
-            "section.media"
         }
 
         static var battery: LocalizedStringKey {
@@ -141,10 +137,6 @@ enum L10n {
 
         static var hostLEDs: LocalizedStringKey {
             "status.host_leds"
-        }
-
-        static var central: LocalizedStringKey {
-            "status.central"
         }
     }
 
@@ -184,6 +176,20 @@ enum L10n {
         }
     }
 
+    enum Sort {
+        static var title: LocalizedStringKey {
+            "sort.title"
+        }
+
+        static var ascending: LocalizedStringKey {
+            "sort.ascending"
+        }
+
+        static var descending: LocalizedStringKey {
+            "sort.descending"
+        }
+    }
+
     enum Device {
         static var emptyState: LocalizedStringKey {
             "device.empty_state"
@@ -193,12 +199,20 @@ enum L10n {
             String(localized: "device.unknown_name")
         }
 
-        static var connectedHostName: String {
-            String(localized: "device.connected_host_name")
+        static var unknownManufacturer: String {
+            String(localized: "device.unknown_manufacturer")
         }
 
-        static var muted: LocalizedStringKey {
-            "device.muted"
+        static var inactive: LocalizedStringKey {
+            "device.inactive"
+        }
+
+        static var notSubscribed: LocalizedStringKey {
+            "device.not_subscribed"
+        }
+
+        static var connectedLegend: LocalizedStringKey {
+            "device.connected_legend"
         }
 
         static func rssi(_ value: Int) -> String {
@@ -224,18 +238,6 @@ enum L10n {
     }
 
     enum Keyboard {
-        static var typeHello: LocalizedStringKey {
-            "keyboard.type_hello"
-        }
-
-        static var pressReturn: LocalizedStringKey {
-            "keyboard.press_return"
-        }
-
-        static var pressEscape: LocalizedStringKey {
-            "keyboard.press_escape"
-        }
-
         static var prompt: LocalizedStringKey {
             "keyboard.prompt"
         }
@@ -328,10 +330,6 @@ enum L10n {
     }
 
     enum Mouse {
-        static var dragToMovePointer: LocalizedStringKey {
-            "mouse.drag_to_move_pointer"
-        }
-
         static var leftButton: LocalizedStringKey {
             "mouse.button.left"
         }
@@ -354,16 +352,8 @@ enum L10n {
     }
 
     enum Media {
-        static var previousTrack: LocalizedStringKey {
-            "media.previous_track"
-        }
-
         static var playPause: LocalizedStringKey {
             "media.play_pause"
-        }
-
-        static var nextTrack: LocalizedStringKey {
-            "media.next_track"
         }
 
         static var rewind: LocalizedStringKey {
@@ -465,7 +455,7 @@ enum L10n {
         }
 
         static var lowEnergy: LocalizedStringKey {
-            "transport_mode.ble"
+            "transport_mode.low_energy"
         }
 
         static var classicAbout: LocalizedStringKey {
@@ -473,7 +463,7 @@ enum L10n {
         }
 
         static var lowEnergyAbout: LocalizedStringKey {
-            "transport_mode.ble.about"
+            "transport_mode.low_energy.about"
         }
 
         static var classicCompatibility: LocalizedStringKey {
@@ -481,7 +471,7 @@ enum L10n {
         }
 
         static var lowEnergyCompatibility: LocalizedStringKey {
-            "transport_mode.ble.compatibility"
+            "transport_mode.low_energy.compatibility"
         }
     }
 
@@ -504,10 +494,6 @@ enum L10n {
 
         static var disconnect: LocalizedStringKey {
             "classic.disconnect"
-        }
-
-        static var connected: LocalizedStringKey {
-            "classic.connected"
         }
 
         static var ready: LocalizedStringKey {

@@ -160,6 +160,11 @@ enum ConsumerKey: UInt16, Sendable, Equatable {
     case channelDown = 0x009D
     case closedCaption = 0x0061
     case menu = 0x0040
+    case menuPick = 0x0041
+    case menuUp = 0x0042
+    case menuDown = 0x0043
+    case menuLeft = 0x0044
+    case menuRight = 0x0045
     case power = 0x0030
 }
 

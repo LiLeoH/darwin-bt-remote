@@ -10,6 +10,7 @@ final class HIDCentral: NSObject, ObservableObject {
     @Published private(set) var isScanning = false
     @Published private(set) var discovered: [DiscoveredPeripheral] = []
     @Published private(set) var connected: Set<UUID> = []
+    @Published private(set) var connecting: Set<UUID> = []
     @Published private(set) var lastError: String?
 
     static let restoreIdentifier = "BTRemote.central.v1"
@@ -65,6 +66,7 @@ final class HIDCentral: NSObject, ObservableObject {
             return
         }
         peripheralCache[identifier] = peripheral
+        connecting.insert(identifier)
         centralManager.connect(peripheral, options: [
             CBConnectPeripheralOptionNotifyOnConnectionKey: true,
             CBConnectPeripheralOptionNotifyOnDisconnectionKey: true
@@ -158,6 +160,7 @@ extension HIDCentral: @preconcurrency CBCentralManagerDelegate {
         if central.state != .poweredOn {
             isScanning = false
             connected.removeAll()
+            connecting.removeAll()
         }
     }
 
@@ -185,6 +188,7 @@ extension HIDCentral: @preconcurrency CBCentralManagerDelegate {
     }
 
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+        connecting.remove(peripheral.identifier)
         connected.insert(peripheral.identifier)
         _trace("connected: \(peripheral.identifier)")
         peripheralCache[peripheral.identifier] = peripheral
@@ -195,6 +199,7 @@ extension HIDCentral: @preconcurrency CBCentralManagerDelegate {
         didDisconnectPeripheral peripheral: CBPeripheral,
         error: Error?
     ) {
+        connecting.remove(peripheral.identifier)
         connected.remove(peripheral.identifier)
         if let error {
             log.error("disconnected with error: \(error.localizedDescription, privacy: .public)")
@@ -209,6 +214,7 @@ extension HIDCentral: @preconcurrency CBCentralManagerDelegate {
         didFailToConnect peripheral: CBPeripheral,
         error: Error?
     ) {
+        connecting.remove(peripheral.identifier)
         if let error {
             lastError = L10n.ErrorMessage.failedToConnect(error.localizedDescription)
             log.error("failed to connect: \(error.localizedDescription, privacy: .public)")

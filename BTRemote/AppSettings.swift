@@ -5,7 +5,8 @@ enum AppSettings {
     static let scrollSensitivityKey = "BTRemote.scrollSensitivity"
     static let autoAdvertiseKey = "BTRemote.autoAdvertise"
     static let developerModeKey = "BTRemote.developerMode"
-    static let useRefreshServiceKey = "BTRemote.useRefreshService"
+    static let useServiceChangedKey = "BTRemote.useServiceChanged"
+    static let deviceNamesKey = "BTRemote.deviceNames"
 
     static let defaultPointerSensitivity = 5.0
     static let pointerSensitivityRange = 0.5 ... 10.0

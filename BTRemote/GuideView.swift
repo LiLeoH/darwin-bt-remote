@@ -12,12 +12,12 @@ struct GuideView: View {
         Form {
             switch transport {
             case .lowEnergy:
-                Section(header: Text(L10n.Setup.fromDevice)) {
+                Section(header: Text(L10n.Setup.fromDevice), footer: Text(troubleshooting)) {
                     step("1.circle", L10n.Setup.fromDeviceStep1)
                     step("2.circle", L10n.Setup.fromDeviceStep2)
                     step("3.circle", L10n.Setup.fromDeviceStep3)
                 }
-                Section(header: Text(L10n.Setup.fromApp), footer: footer) {
+                Section(header: Text(L10n.Setup.fromApp), footer: fromAppFooter) {
                     step("1.circle", L10n.Setup.fromAppStep1)
                     step("2.circle", L10n.Setup.fromAppStep2)
                 }
@@ -41,11 +41,16 @@ struct GuideView: View {
     private var footer: some View {
         VStack(alignment: .leading, spacing: 12) {
             #if os(macOS)
-                Text(about)
-                Text(compatibility)
+                transportInfo
             #endif
             Text(troubleshooting)
         }
+    }
+
+    @ViewBuilder private var fromAppFooter: some View {
+        #if os(macOS)
+            transportInfo
+        #endif
     }
 
     private var title: LocalizedStringKey {
@@ -67,6 +72,13 @@ struct GuideView: View {
             switch transport {
             case .lowEnergy: L10n.TransportMode.lowEnergyCompatibility
             case .classic: L10n.TransportMode.classicCompatibility
+            }
+        }
+
+        private var transportInfo: some View {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(about)
+                Text(compatibility)
             }
         }
     #endif

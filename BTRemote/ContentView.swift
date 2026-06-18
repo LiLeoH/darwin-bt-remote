@@ -27,18 +27,18 @@ struct ContentView: View {
             SetupView()
                 .tabItem { Label(L10n.Tab.setup, systemImage: "gearshape") }
                 .tag(Tab.setup)
-            RemoteView(goToSetup: { tab = .setup })
-                .tabItem { Label(L10n.Tab.remote, systemImage: "gamecontroller") }
-                .tag(Tab.remote)
             KeyboardView(goToSetup: { tab = .setup })
                 .tabItem { Label(L10n.Tab.keyboard, systemImage: "keyboard") }
                 .tag(Tab.keyboard)
+            RemoteView(goToSetup: { tab = .setup })
+                .tabItem { Label(L10n.Tab.remote, systemImage: "gamecontroller") }
+                .tag(Tab.remote)
             SettingsView()
                 .tabItem { Label(L10n.Tab.settings, systemImage: "slider.horizontal.3") }
                 .tag(Tab.settings)
         }
         .onChange(of: hid.isConnected) { connected in
-            if connected, tab == .setup { tab = .remote }
+            if connected, tab == .setup { tab = .keyboard }
         }
         #if os(macOS)
         .frame(minWidth: 480, idealWidth: 560, minHeight: 640, idealHeight: 800)
@@ -52,10 +52,12 @@ struct ContentView: View {
             ContentView()
                 .environmentObject(HIDPeripheral())
                 .environmentObject(HIDCentral())
+                .environmentObject(DeviceNameStore())
         #else
             ContentView()
                 .environmentObject(HIDPeripheral())
                 .environmentObject(HIDCentral())
+                .environmentObject(DeviceNameStore())
                 .environmentObject(HIDClassicDevice())
         #endif
     }

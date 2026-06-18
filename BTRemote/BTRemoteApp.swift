@@ -22,8 +22,10 @@ struct BTRemoteApp: App {
         @AppStorage("BTRemote.macTransportMode") private var modeRaw: String = TransportMode.defaultMode.rawValue
     #endif
 
+    @StateObject private var deviceNames = DeviceNameStore()
+
     init() {
-        UserDefaults.standard.register(defaults: [AppSettings.useRefreshServiceKey: true])
+        UserDefaults.standard.register(defaults: [AppSettings.useServiceChangedKey: true])
     }
 
     var body: some Scene {
@@ -32,6 +34,7 @@ struct BTRemoteApp: App {
                 ContentView()
                     .environmentObject(lowEnergy)
                     .environmentObject(central)
+                    .environmentObject(deviceNames)
                     .onAppear {
                         central.start()
                         if autoAdvertise { lowEnergy.start() }
@@ -41,6 +44,7 @@ struct BTRemoteApp: App {
                     .environmentObject(lowEnergy)
                     .environmentObject(central)
                     .environmentObject(classic)
+                    .environmentObject(deviceNames)
                     .environment(\.macTransport, currentMode)
                     .onAppear { _onAppear() }
                     .onChange(of: modeRaw) { _ in _modeChanged() }

@@ -11,8 +11,8 @@ final class HIDPeripheral: NSObject, ObservableObject {
     @Published private(set) var isHIDServiceAdded = false
     /// central identifier: the set of characteristic UUIDs it is currently subscribed to
     @Published private(set) var subscribedCentrals: [UUID: Set<CBUUID>] = [:]
-    /// subscribed centrals that the user has chosen to silence; broadcasts skip them
-    @Published private(set) var blockedCentrals: Set<UUID> = []
+    /// broadcasts skip inactive hosts
+    @Published private(set) var inactiveCentrals: Set<UUID> = []
     @Published private(set) var connectedCentrals: Set<UUID> = []
     @Published private(set) var keyboardLEDs: KeyboardLEDs = []
     @Published private(set) var lastError: String?
@@ -35,9 +35,9 @@ final class HIDPeripheral: NSObject, ObservableObject {
     private var bootKeyboardInputChar: CBMutableCharacteristic?
     private var bootKeyboardOutputChar: CBMutableCharacteristic?
     private var batteryLevelChar: CBMutableCharacteristic?
-    private var refreshServiceObj: CBMutableService?
-    private var refreshArmed = false
-    private static let refreshGrace: UInt64 = 2_000_000_000
+    private var serviceChangedObj: CBMutableService?
+    private var serviceChangedArmed = false
+    private static let serviceChangedGrace: UInt64 = 2_000_000_000
 
     /// last-sent payloads for reads and new subscriptions
     private var cachedReports: [UInt8: Data] = [
@@ -90,11 +90,11 @@ final class HIDPeripheral: NSObject, ObservableObject {
         broadcast(report.data, reportID: .systemControl)
     }
 
-    func toggleBlocked(_ uuid: UUID) {
-        if blockedCentrals.contains(uuid) {
-            blockedCentrals.remove(uuid)
+    func toggleActive(_ uuid: UUID) {
+        if inactiveCentrals.contains(uuid) {
+            inactiveCentrals.remove(uuid)
         } else {
-            blockedCentrals.insert(uuid)
+            inactiveCentrals.insert(uuid)
         }
     }
 
@@ -106,36 +106,36 @@ final class HIDPeripheral: NSObject, ObservableObject {
         if let batteryLevelChar { _ = updateValue(asHIDReport, for: batteryLevelChar) }
     }
 
-    /// if a host connects but never subscribes (stale GATT cache), cycle a random service to fire Service Changed so it re-discovers
-    func scheduleAutoRefresh() {
-        guard UserDefaults.standard.bool(forKey: AppSettings.useRefreshServiceKey), !refreshArmed else { return }
-        refreshArmed = true
+    /// if host connects but never subscribes (stale GATT cache), cycle a temp service to fire Service Changed so it re-discovers
+    func scheduleServiceChanged() {
+        guard UserDefaults.standard.bool(forKey: AppSettings.useServiceChangedKey), !serviceChangedArmed else { return }
+        serviceChangedArmed = true
         Task { [weak self] in
-            try? await Task.sleep(nanoseconds: Self.refreshGrace)
-            self?._cycleRefreshIfUnsubscribed()
+            try? await Task.sleep(nanoseconds: Self.serviceChangedGrace)
+            self?._cycleServiceChangedIfUnsubscribed()
         }
     }
 
-    private func _cycleRefreshIfUnsubscribed() {
+    private func _cycleServiceChangedIfUnsubscribed() {
         guard subscribedCentrals.isEmpty else { return }
-        _cycleRefreshService()
+        _cycleServiceChanged()
     }
 
-    private func _cycleRefreshService() {
+    private func _cycleServiceChanged() {
         guard let pManager else { return }
-        if let refresh = refreshServiceObj {
-            pManager.remove(refresh)
-            pManager.add(refresh)
+        if let svc = serviceChangedObj {
+            pManager.remove(svc)
+            pManager.add(svc)
         } else {
-            let refresh = buildRefreshService()
-            refreshServiceObj = refresh
-            pManager.add(refresh)
+            let svc = buildServiceChangedTrigger()
+            serviceChangedObj = svc
+            pManager.add(svc)
         }
-        _trace("refresh service cycled")
+        _trace("Service Changed cycled")
     }
 
-    /// throwaway service that's only used to perturb the GATT to trigger Service Changed
-    private func buildRefreshService() -> CBMutableService {
+    /// temp service used to perturb the GATT to trigger Service Changed
+    private func buildServiceChangedTrigger() -> CBMutableService {
         let service = CBMutableService(type: CBUUID(nsuuid: UUID()), primary: true)
         service.characteristics = [
             CBMutableCharacteristic(
@@ -374,7 +374,7 @@ final class HIDPeripheral: NSObject, ObservableObject {
 
     private func activeRecipients() -> [CBCentral] {
         subscribedCentrals.keys
-            .filter { !blockedCentrals.contains($0) }
+            .filter { !inactiveCentrals.contains($0) }
             .compactMap { centralObjects[$0] }
     }
 
@@ -474,9 +474,9 @@ extension HIDPeripheral: @preconcurrency CBPeripheralManagerDelegate {
         if chars.isEmpty {
             subscribedCentrals.removeValue(forKey: central.identifier)
             centralObjects.removeValue(forKey: central.identifier)
-            blockedCentrals.remove(central.identifier)
+            inactiveCentrals.remove(central.identifier)
             connectedCentrals.remove(central.identifier)
-            refreshArmed = false
+            serviceChangedArmed = false
         } else {
             subscribedCentrals[central.identifier] = chars
         }
@@ -490,7 +490,7 @@ extension HIDPeripheral: @preconcurrency CBPeripheralManagerDelegate {
     func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveRead request: CBATTRequest) {
         _trace("read: \(request.central.identifier) -> \(request.characteristic.uuid)")
         _trackInteraction(from: request.central)
-        scheduleAutoRefresh()
+        scheduleServiceChanged()
         let value = readValue(forRequest: request)
         guard let value else {
             peripheral.respond(to: request, withResult: .invalidAttributeValueLength)

@@ -3,6 +3,8 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject private var lowEnergy: HIDPeripheral
     @EnvironmentObject private var central: HIDCentral
+    @EnvironmentObject private var names: DeviceNameStore
+    @State private var showReset = false
     #if os(macOS)
         @EnvironmentObject private var classic: HIDClassicDevice
         @Environment(\.macTransport) private var macTransport
@@ -10,7 +12,7 @@ struct SettingsView: View {
     @AppStorage(AppSettings.touchpadSensitivityKey) private var touchpadSensitivity = AppSettings.defaultPointerSensitivity
     @AppStorage(AppSettings.scrollSensitivityKey) private var scrollSensitivity = AppSettings.defaultScrollSensitivity
     @AppStorage(AppSettings.developerModeKey) private var developerMode = false
-    @AppStorage(AppSettings.useRefreshServiceKey) private var forceServiceRefresh = true
+    @AppStorage(AppSettings.useServiceChangedKey) private var forceServiceChanged = true
     #if os(iOS)
         @AppStorage(AppSettings.autoAdvertiseKey) private var autoAdvertise = true
     #endif
@@ -51,9 +53,9 @@ struct SettingsView: View {
                     Toggle(L10n.Settings.autoAdvertise, isOn: $autoAdvertise)
                 }
             #endif
-            Section(footer: Text(L10n.Settings.forceServiceRefreshHint)) {
-                Toggle(L10n.Settings.forceServiceRefresh, isOn: $forceServiceRefresh)
-                    .onChange(of: forceServiceRefresh) { if $0 { lowEnergy.scheduleAutoRefresh() } }
+            Section(footer: Text(L10n.Settings.forceServiceChangedHint)) {
+                Toggle(L10n.Settings.forceServiceChanged, isOn: $forceServiceChanged)
+                    .onChange(of: forceServiceChanged) { if $0 { lowEnergy.scheduleServiceChanged() } }
             }
             Section(header: Text(L10n.Settings.advanced)) {
                 Toggle(L10n.Settings.developerMode, isOn: $developerMode)
@@ -62,6 +64,25 @@ struct SettingsView: View {
                 }
             }
             if developerMode, hid.isActive { batterySection }
+            resetSection
+        }
+        .confirmationDialog(L10n.Settings.resetConfirm, isPresented: $showReset, titleVisibility: .visible) {
+            Button(L10n.Settings.reset, role: .destructive) { _resetAll() }
+        }
+    }
+
+    private var resetSection: some View {
+        Section {
+            Button(role: .destructive) { showReset = true } label: {
+                Label(L10n.Settings.reset, systemImage: "trash")
+            }
+        }
+    }
+
+    private func _resetAll() {
+        names.clear()
+        if let bundleID = Bundle.main.bundleIdentifier {
+            UserDefaults.standard.removePersistentDomain(forName: bundleID)
         }
     }
 
@@ -104,10 +125,12 @@ struct SettingsView: View {
             SettingsView()
                 .environmentObject(HIDPeripheral())
                 .environmentObject(HIDCentral())
+                .environmentObject(DeviceNameStore())
         #else
             SettingsView()
                 .environmentObject(HIDPeripheral())
                 .environmentObject(HIDCentral())
+                .environmentObject(DeviceNameStore())
                 .environmentObject(HIDClassicDevice())
         #endif
     }

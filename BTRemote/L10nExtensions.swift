@@ -57,6 +57,10 @@ extension L10n {
             "setup.guide"
         }
 
+        static var activeLegend: LocalizedStringKey {
+            "setup.active_legend"
+        }
+
         static var lowEnergyGuide: LocalizedStringKey {
             "setup.le_guide"
         }
@@ -147,16 +151,24 @@ extension L10n {
             "settings.developer_mode"
         }
 
-        static var forceServiceRefresh: LocalizedStringKey {
-            "settings.force_service_refresh"
+        static var forceServiceChanged: LocalizedStringKey {
+            "settings.force_service_changed"
         }
 
-        static var forceServiceRefreshHint: LocalizedStringKey {
-            "settings.force_service_refresh_hint"
+        static var forceServiceChangedHint: LocalizedStringKey {
+            "settings.force_service_changed_hint"
         }
 
         static var sourceCode: LocalizedStringKey {
             "settings.source_code"
+        }
+
+        static var reset: LocalizedStringKey {
+            "settings.reset"
+        }
+
+        static var resetConfirm: LocalizedStringKey {
+            "settings.reset_confirm"
         }
     }
 

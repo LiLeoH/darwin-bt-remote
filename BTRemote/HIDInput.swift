@@ -99,7 +99,7 @@ extension HIDInput {
             sendConsumer: { lowEnergy.sendConsumer($0) },
             updateBattery: { lowEnergy.updateBatteryLevel($0) },
             isActive: lowEnergy.isHIDServiceAdded,
-            isConnected: lowEnergy.connectedCentrals.contains { !lowEnergy.blockedCentrals.contains($0) } || !central.connected.isEmpty,
+            isConnected: lowEnergy.connectedCentrals.contains { !lowEnergy.inactiveCentrals.contains($0) } || !central.connected.isEmpty,
             activeError: lowEnergy.lastError ?? central.lastError,
             batteryLevel: lowEnergy.batteryLevel
         )

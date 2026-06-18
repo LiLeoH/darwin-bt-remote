@@ -1,6 +1,17 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "action.remove_all_services": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove All Services"
+          }
+        }
+      }
+    },
     "action.scan_nearby_devices": {
       "extractionState": "manual",
       "localizations": {
@@ -188,17 +199,6 @@
         }
       }
     },
-    "classic.connected": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connected"
-          }
-        }
-      }
-    },
     "classic.disconnect": {
       "extractionState": "manual",
       "localizations": {
@@ -320,13 +320,13 @@
         }
       }
     },
-    "device.connected_host_name": {
+    "device.connected_legend": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connected device"
+            "value": "✓ means the device is connected."
           }
         }
       }
@@ -353,13 +353,24 @@
         }
       }
     },
-    "device.muted": {
+    "device.inactive": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Muted"
+            "value": "Inactive"
+          }
+        }
+      }
+    },
+    "device.not_subscribed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not Subscribed"
           }
         }
       }
@@ -371,6 +382,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "%d dBm"
+          }
+        }
+      }
+    },
+    "device.unknown_manufacturer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown"
           }
         }
       }
@@ -474,24 +496,13 @@
         }
       }
     },
-    "device_info.reset_subscription": {
+    "device_info.remove_services_hint": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reset subscription"
-          }
-        }
-      }
-    },
-    "device_info.reset_subscription_hint": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Use if this host shows connected but isn't receiving input."
+            "value": "Removes all published HID services and drops every connected host. Tap Start Advertising to republish."
           }
         }
       }
@@ -524,7 +535,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Device Info"
+            "value": "Device Information"
           }
         }
       }
@@ -782,28 +793,6 @@
         }
       }
     },
-    "keyboard.press_escape": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Press Esc"
-          }
-        }
-      }
-    },
-    "keyboard.press_return": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Press Return"
-          }
-        }
-      }
-    },
     "keyboard.print_screen": {
       "extractionState": "manual",
       "localizations": {
@@ -866,17 +855,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tab"
-          }
-        }
-      }
-    },
-    "keyboard.type_hello": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Type \"hello\""
           }
         }
       }
@@ -947,17 +925,6 @@
         }
       }
     },
-    "media.next_track": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Next Track"
-          }
-        }
-      }
-    },
     "media.play_pause": {
       "extractionState": "manual",
       "localizations": {
@@ -965,17 +932,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Play or Pause"
-          }
-        }
-      }
-    },
-    "media.previous_track": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Previous Track"
           }
         }
       }
@@ -1046,17 +1002,6 @@
         }
       }
     },
-    "mouse.drag_to_move_pointer": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Drag to move pointer"
-          }
-        }
-      }
-    },
     "mouse.wheel.down": {
       "extractionState": "manual",
       "localizations": {
@@ -1123,6 +1068,17 @@
         }
       }
     },
+    "remote.down": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Down"
+          }
+        }
+      }
+    },
     "remote.home": {
       "extractionState": "manual",
       "localizations": {
@@ -1130,6 +1086,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Home"
+          }
+        }
+      }
+    },
+    "remote.left": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Left"
           }
         }
       }
@@ -1189,6 +1156,39 @@
         }
       }
     },
+    "remote.right": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Right"
+          }
+        }
+      }
+    },
+    "remote.select": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select"
+          }
+        }
+      }
+    },
+    "remote.up": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Up"
+          }
+        }
+      }
+    },
     "section.battery": {
       "extractionState": "manual",
       "localizations": {
@@ -1196,17 +1196,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Battery"
-          }
-        }
-      }
-    },
-    "section.connected_devices": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connected"
           }
         }
       }
@@ -1244,17 +1233,6 @@
         }
       }
     },
-    "section.keyboard": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Keyboard"
-          }
-        }
-      }
-    },
     "section.last_error": {
       "extractionState": "manual",
       "localizations": {
@@ -1262,50 +1240,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Last Error"
-          }
-        }
-      }
-    },
-    "section.media": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Media"
-          }
-        }
-      }
-    },
-    "section.mouse": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mouse"
-          }
-        }
-      }
-    },
-    "section.nearby": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nearby"
-          }
-        }
-      }
-    },
-    "section.other_devices": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Other Devices"
           }
         }
       }
@@ -1398,18 +1332,18 @@
         }
       }
     },
-    "settings.force_service_refresh": {
+    "settings.force_service_changed": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Force service refresh"
+            "value": "Force Service Changed"
           }
         }
       }
     },
-    "settings.force_service_refresh_hint": {
+    "settings.force_service_changed_hint": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -1420,13 +1354,35 @@
         }
       }
     },
+    "settings.reset": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset"
+          }
+        }
+      }
+    },
+    "settings.reset_confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset all settings? This cannot be undone."
+          }
+        }
+      }
+    },
     "settings.scroll_speed": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scroll Speed"
+            "value": "Scroll speed"
           }
         }
       }
@@ -1460,6 +1416,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Trackpad"
+          }
+        }
+      }
+    },
+    "setup.active_legend": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✓ means the device is active and subscribed."
           }
         }
       }
@@ -1629,6 +1596,39 @@
         }
       }
     },
+    "sort.ascending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ascending"
+          }
+        }
+      }
+    },
+    "sort.descending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descending"
+          }
+        }
+      }
+    },
+    "sort.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sort"
+          }
+        }
+      }
+    },
     "status.advertising": {
       "extractionState": "manual",
       "localizations": {
@@ -1647,17 +1647,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bluetooth"
-          }
-        }
-      }
-    },
-    "status.central": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Central"
           }
         }
       }
@@ -1761,39 +1750,6 @@
         }
       }
     },
-    "transport_mode.ble": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Low Energy"
-          }
-        }
-      }
-    },
-    "transport_mode.ble.about": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HID over GATT (HOGP) using Bluetooth Low Energy (BLE)."
-          }
-        }
-      }
-    },
-    "transport_mode.ble.compatibility": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "For use with Apple devices (iOS, iPadOS, or macOS), or Windows only. For other devices, use Classic mode instead."
-          }
-        }
-      }
-    },
     "transport_mode.classic": {
       "extractionState": "manual",
       "localizations": {
@@ -1834,6 +1790,39 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mode"
+          }
+        }
+      }
+    },
+    "transport_mode.low_energy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Low Energy"
+          }
+        }
+      }
+    },
+    "transport_mode.low_energy.about": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HID over GATT (HOGP) using Bluetooth Low Energy (BLE)."
+          }
+        }
+      }
+    },
+    "transport_mode.low_energy.compatibility": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For use with Apple devices (iOS, iPadOS, or macOS), or Windows only. For other devices, use Classic mode instead."
           }
         }
       }

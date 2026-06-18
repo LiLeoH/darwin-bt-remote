@@ -1,7 +1,7 @@
 import CoreBluetooth
 import SwiftUI
 
-/// one device line shared by the connected-hosts list (peripheral role) and the scan list (central role)
+/// scan-list device line (central role)
 struct DeviceRow<Trailing: View>: View {
     let entry: DeviceEntry
     var accessibilityLabel: String? = nil
@@ -13,8 +13,7 @@ struct DeviceRow<Trailing: View>: View {
         HStack {
             Button(action: action) {
                 HStack {
-                    Image(systemName: entry.iconName)
-                        .foregroundColor(entry.iconColor)
+                    RowLeadingStatus(phase: entry.isConnecting ? .connecting : (entry.isCentralConnected ? .active : .idle))
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: entry.displayName).foregroundColor(.primary)
                         Text(verbatim: entry.id.uuidString)
@@ -48,10 +47,12 @@ struct DeviceEntry: Identifiable, Equatable {
     let isConnectable: Bool?
     let isHostConnected: Bool
     let isCentralConnected: Bool
-    let isBlocked: Bool
+    let isConnecting: Bool
+    let isSubscribed: Bool
+    let isActive: Bool
 
     var isLive: Bool {
-        isCentralConnected || (isHostConnected && !isBlocked)
+        isCentralConnected || (isHostConnected && isActive)
     }
 
     var manufacturer: String? {
@@ -60,17 +61,66 @@ struct DeviceEntry: Identifiable, Equatable {
 
     var displayName: String {
         if isNamed { return name }
-        if let manufacturer { return "[\(manufacturer)]" }
-        return name
+        return "[\(manufacturer ?? L10n.Device.unknownManufacturer)]"
+    }
+}
+
+struct RowLeadingStatus: View {
+    enum Phase { case idle, connecting, active }
+    let phase: Phase
+
+    var body: some View {
+        ZStack {
+            switch phase {
+            case .idle:
+                Color.clear
+            case .connecting:
+                ProgressView()
+            case .active:
+                Image(systemName: "checkmark")
+                    .font(.body.weight(.semibold))
+                    .foregroundColor(.accentColor)
+            }
+        }
+        .frame(width: 22)
+    }
+}
+
+struct ConnectedDeviceRow: View {
+    let entry: DeviceEntry
+    let onToggle: () -> Void
+    let onInfo: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            if entry.isSubscribed {
+                Button(action: onToggle) { label }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel(Text(verbatim: entry.displayName))
+            } else {
+                label
+            }
+            Button(action: onInfo) {
+                Image(systemName: "info.circle").foregroundColor(.accentColor)
+            }
+            .buttonStyle(.borderless)
+            .accessibilityLabel(L10n.DeviceInfo.info)
+        }
     }
 
-    var iconName: String {
-        if isBlocked { return "link.circle" }
-        return isLive ? "link.circle.fill" : "link.circle"
-    }
-
-    var iconColor: Color {
-        if isBlocked { return .secondary }
-        return isLive ? .green : .accentColor
+    private var label: some View {
+        HStack(spacing: 12) {
+            RowLeadingStatus(phase: entry.isActive ? .active : .idle)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: entry.displayName).foregroundColor(.primary)
+                Text(verbatim: entry.id.uuidString)
+                    .font(.caption2).foregroundColor(.secondary).lineLimit(1)
+            }
+            Spacer()
+            if !entry.isSubscribed {
+                Text(L10n.Device.notSubscribed).font(.caption).foregroundColor(.secondary)
+            }
+        }
+        .contentShape(Rectangle())
     }
 }
