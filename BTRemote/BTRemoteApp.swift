@@ -22,6 +22,10 @@ struct BTRemoteApp: App {
         @AppStorage("BTRemote.macTransportMode") private var modeRaw: String = TransportMode.defaultMode.rawValue
     #endif
 
+    init() {
+        UserDefaults.standard.register(defaults: [AppSettings.useRefreshServiceKey: true])
+    }
+
     var body: some Scene {
         WindowGroup {
             #if os(iOS)

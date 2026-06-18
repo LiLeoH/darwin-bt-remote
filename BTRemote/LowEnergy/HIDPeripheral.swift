@@ -35,6 +35,9 @@ final class HIDPeripheral: NSObject, ObservableObject {
     private var bootKeyboardInputChar: CBMutableCharacteristic?
     private var bootKeyboardOutputChar: CBMutableCharacteristic?
     private var batteryLevelChar: CBMutableCharacteristic?
+    private var refreshServiceObj: CBMutableService?
+    private var refreshArmed = false
+    private static let refreshGrace: UInt64 = 2_000_000_000
 
     /// last-sent payloads for reads and new subscriptions
     private var cachedReports: [UInt8: Data] = [
@@ -101,6 +104,48 @@ final class HIDPeripheral: NSObject, ObservableObject {
         let asHIDReport = Data([clamped])
         cachedReports[ReportID.battery.rawValue] = asHIDReport
         if let batteryLevelChar { _ = updateValue(asHIDReport, for: batteryLevelChar) }
+    }
+
+    /// if a host connects but never subscribes (stale GATT cache), cycle a random service to fire Service Changed so it re-discovers
+    func scheduleAutoRefresh() {
+        guard UserDefaults.standard.bool(forKey: AppSettings.useRefreshServiceKey), !refreshArmed else { return }
+        refreshArmed = true
+        Task { [weak self] in
+            try? await Task.sleep(nanoseconds: Self.refreshGrace)
+            self?._cycleRefreshIfUnsubscribed()
+        }
+    }
+
+    private func _cycleRefreshIfUnsubscribed() {
+        guard subscribedCentrals.isEmpty else { return }
+        _cycleRefreshService()
+    }
+
+    private func _cycleRefreshService() {
+        guard let pManager else { return }
+        if let refresh = refreshServiceObj {
+            pManager.remove(refresh)
+            pManager.add(refresh)
+        } else {
+            let refresh = buildRefreshService()
+            refreshServiceObj = refresh
+            pManager.add(refresh)
+        }
+        _trace("refresh service cycled")
+    }
+
+    /// throwaway service that's only used to perturb the GATT to trigger Service Changed
+    private func buildRefreshService() -> CBMutableService {
+        let service = CBMutableService(type: CBUUID(nsuuid: UUID()), primary: true)
+        service.characteristics = [
+            CBMutableCharacteristic(
+                type: CBUUID(nsuuid: UUID()),
+                properties: [.read, .notifyEncryptionRequired],
+                value: nil,
+                permissions: .readEncryptionRequired
+            )
+        ]
+        return service
     }
 
     private func installServices() {
@@ -274,7 +319,8 @@ final class HIDPeripheral: NSObject, ObservableObject {
         guard let pManager, !isAdvertising else { return }
         pManager.startAdvertising([
             CBAdvertisementDataLocalNameKey: advertiseLocalName,
-            CBAdvertisementDataServiceUUIDsKey: [HIDProfile.hidService] // hidService alone: required for iOS controlling Android
+            // hidService must stay first if more than one service is being advertised
+            CBAdvertisementDataServiceUUIDsKey: [HIDProfile.hidService]
         ])
     }
 
@@ -430,6 +476,7 @@ extension HIDPeripheral: @preconcurrency CBPeripheralManagerDelegate {
             centralObjects.removeValue(forKey: central.identifier)
             blockedCentrals.remove(central.identifier)
             connectedCentrals.remove(central.identifier)
+            refreshArmed = false
         } else {
             subscribedCentrals[central.identifier] = chars
         }
@@ -443,6 +490,7 @@ extension HIDPeripheral: @preconcurrency CBPeripheralManagerDelegate {
     func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveRead request: CBATTRequest) {
         _trace("read: \(request.central.identifier) -> \(request.characteristic.uuid)")
         _trackInteraction(from: request.central)
+        scheduleAutoRefresh()
         let value = readValue(forRequest: request)
         guard let value else {
             peripheral.respond(to: request, withResult: .invalidAttributeValueLength)

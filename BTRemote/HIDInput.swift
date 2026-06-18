@@ -4,7 +4,7 @@ import Foundation
     import UIKit
 #endif
 
-/// routes UI input to the active HID backend (low energy, or classic on macOS)
+/// routes UI input to the active HID backend
 struct HIDInput {
     let sendMouse: (MouseReport) -> Void
     let sendKeyboard: (KeyboardReport) -> Void

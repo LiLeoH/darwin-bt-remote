@@ -85,6 +85,10 @@ enum L10n {
             "section.devices"
         }
 
+        static var otherDevices: LocalizedStringKey {
+            "section.other_devices"
+        }
+
         static var connectedDevices: LocalizedStringKey {
             "section.connected_devices"
         }

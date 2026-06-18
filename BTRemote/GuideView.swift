@@ -12,13 +12,14 @@ struct GuideView: View {
         Form {
             switch transport {
             case .lowEnergy:
-                Section(header: Text(L10n.Setup.fromApp)) {
-                    step("1.circle", L10n.Setup.fromAppStep1)
-                    step("2.circle", L10n.Setup.fromAppStep2)
-                }
-                Section(header: Text(L10n.Setup.fromDevice), footer: footer) {
+                Section(header: Text(L10n.Setup.fromDevice)) {
                     step("1.circle", L10n.Setup.fromDeviceStep1)
                     step("2.circle", L10n.Setup.fromDeviceStep2)
+                    step("3.circle", L10n.Setup.fromDeviceStep3)
+                }
+                Section(header: Text(L10n.Setup.fromApp), footer: footer) {
+                    step("1.circle", L10n.Setup.fromAppStep1)
+                    step("2.circle", L10n.Setup.fromAppStep2)
                 }
             case .classic:
                 Section(footer: footer) {

@@ -5,6 +5,7 @@ struct SetupView: View {
     @EnvironmentObject private var lowEnergy: HIDPeripheral
     @EnvironmentObject private var central: HIDCentral
     @AppStorage(AppSettings.developerModeKey) private var developerMode = false
+    @State private var selectedInfo: DeviceEntry?
     #if os(macOS)
         @EnvironmentObject private var classic: HIDClassicDevice
         @AppStorage("BTRemote.macTransportMode") private var modeRaw: String = TransportMode.defaultMode.rawValue
@@ -69,6 +70,7 @@ struct SetupView: View {
                 }
             }
         }
+        .sheet(item: $selectedInfo) { DeviceInfoView(entry: $0) }
     }
 
     private var guideSection: some View {
@@ -142,7 +144,41 @@ struct SetupView: View {
             NavigationLink {
                 DeviceListView()
             } label: {
-                Label(L10n.Section.devices, systemImage: "dot.radiowaves.left.and.right")
+                Label(L10n.Section.otherDevices, systemImage: "dot.radiowaves.left.and.right")
+            }
+            ForEach(_connectedHosts) { hostRow($0) }
+        }
+    }
+
+    /// hosts that connected to us (peripheral role)
+    private var _connectedHosts: [DeviceEntry] {
+        lowEnergy.connectedCentrals
+            .map { uuid in
+                DeviceEntry(
+                    id: uuid,
+                    name: L10n.Device.connectedHostName,
+                    isNamed: true,
+                    rssi: 0,
+                    advertisedServices: [],
+                    companyID: nil,
+                    txPower: nil,
+                    isConnectable: nil,
+                    isHostConnected: true,
+                    isCentralConnected: false,
+                    isBlocked: lowEnergy.blockedCentrals.contains(uuid)
+                )
+            }
+            .sorted { $0.id.uuidString < $1.id.uuidString }
+    }
+
+    private func hostRow(_ entry: DeviceEntry) -> some View {
+        DeviceRow(
+            entry: entry,
+            action: { lowEnergy.toggleBlocked(entry.id) },
+            onInfo: { selectedInfo = entry }
+        ) {
+            if entry.isBlocked {
+                Text(L10n.Device.muted).font(.caption).foregroundColor(.secondary)
             }
         }
     }

@@ -105,6 +105,10 @@ extension L10n {
             "setup.from_device_step2"
         }
 
+        static var fromDeviceStep3: LocalizedStringKey {
+            "setup.from_device_step3"
+        }
+
         static var troubleshooting: LocalizedStringKey {
             "setup.troubleshooting"
         }
@@ -141,6 +145,14 @@ extension L10n {
 
         static var developerMode: LocalizedStringKey {
             "settings.developer_mode"
+        }
+
+        static var forceServiceRefresh: LocalizedStringKey {
+            "settings.force_service_refresh"
+        }
+
+        static var forceServiceRefreshHint: LocalizedStringKey {
+            "settings.force_service_refresh_hint"
         }
 
         static var sourceCode: LocalizedStringKey {

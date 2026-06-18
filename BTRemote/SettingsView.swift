@@ -10,6 +10,7 @@ struct SettingsView: View {
     @AppStorage(AppSettings.touchpadSensitivityKey) private var touchpadSensitivity = AppSettings.defaultPointerSensitivity
     @AppStorage(AppSettings.scrollSensitivityKey) private var scrollSensitivity = AppSettings.defaultScrollSensitivity
     @AppStorage(AppSettings.developerModeKey) private var developerMode = false
+    @AppStorage(AppSettings.useRefreshServiceKey) private var forceServiceRefresh = true
     #if os(iOS)
         @AppStorage(AppSettings.autoAdvertiseKey) private var autoAdvertise = true
     #endif
@@ -50,6 +51,10 @@ struct SettingsView: View {
                     Toggle(L10n.Settings.autoAdvertise, isOn: $autoAdvertise)
                 }
             #endif
+            Section(footer: Text(L10n.Settings.forceServiceRefreshHint)) {
+                Toggle(L10n.Settings.forceServiceRefresh, isOn: $forceServiceRefresh)
+                    .onChange(of: forceServiceRefresh) { if $0 { lowEnergy.scheduleAutoRefresh() } }
+            }
             Section(header: Text(L10n.Settings.advanced)) {
                 Toggle(L10n.Settings.developerMode, isOn: $developerMode)
                 Link(destination: sourceCodeURL) {
