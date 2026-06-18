@@ -4,7 +4,7 @@ import SwiftUI
 /// scan-list device line (central role)
 struct DeviceRow<Trailing: View>: View {
     let entry: DeviceEntry
-    var accessibilityLabel: String? = nil
+    var accessibilityLabel: String?
     let action: () -> Void
     let onInfo: () -> Void
     @ViewBuilder let trailing: () -> Trailing

@@ -99,7 +99,7 @@ private struct DeviceNameEditView: View {
                 .focused($focused)
         }
         #if os(macOS)
-            .formStyle(.grouped)
+        .formStyle(.grouped)
         #endif
         .navigationTitle(L10n.DeviceInfo.name)
         #if os(iOS)

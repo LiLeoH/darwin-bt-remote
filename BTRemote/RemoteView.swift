@@ -83,17 +83,38 @@ struct RemoteView: View {
 
     private var controls: some View {
         GeometryReader { geo in
-            let h = geo.size.height
-            VStack(spacing: cellGap) {
-                mediaPill.frame(height: h * 0.11)
-                grid.frame(maxHeight: .infinity)
-                bottomRow.frame(height: h * 0.11)
-                dpad.frame(height: h * 0.42)
+            if geo.size.width > geo.size.height {
+                landscapeControls(geo.size)
+            } else {
+                portraitControls(geo.size)
             }
-            .frame(width: geo.size.width, height: geo.size.height)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
+    }
+
+    private func portraitControls(_ size: CGSize) -> some View {
+        let h = size.height
+        return VStack(spacing: cellGap) {
+            mediaPill.frame(height: h * 0.11)
+            grid.frame(maxHeight: .infinity)
+            bottomRow.frame(height: h * 0.11)
+            dpad.frame(height: h * 0.42)
+        }
+        .frame(width: size.width, height: size.height)
+    }
+
+    private func landscapeControls(_ size: CGSize) -> some View {
+        let h = size.height
+        return HStack(spacing: cellGap * 2) {
+            VStack(spacing: cellGap) {
+                mediaPill.frame(height: h * 0.16)
+                grid.frame(maxHeight: .infinity)
+                bottomRow.frame(height: h * 0.16)
+            }
+            dpad.frame(width: min(h, size.width * 0.42))
+        }
+        .frame(width: size.width, height: size.height)
     }
 
     private var mediaPill: some View {
@@ -201,7 +222,6 @@ struct RemoteView: View {
             label: { Text(verbatim: "\(number)").font(.title3.weight(.medium)) }
         )
     }
-
 }
 
 #if DEBUG

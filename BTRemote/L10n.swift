@@ -236,7 +236,9 @@ enum L10n {
             )
         }
     }
+}
 
+extension L10n {
     enum Keyboard {
         static var prompt: LocalizedStringKey {
             "keyboard.prompt"

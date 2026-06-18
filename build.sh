@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-PROJECT="BTRemote"
-
 # nix-shell -p xcodegen swiftlint swiftformat xcbeautify --run "unset LD && ./build.sh"
-for file in company_ids service_uuids; do
-    [ -f "BTRemote/Resources/$file.json" ] || curl -fsSL -o "BTRemote/Resources/$file.json" "https://raw.githubusercontent.com/NordicSemiconductor/bluetooth-numbers-database/master/v1/$file.json"
-done
-xcodegen generate
+
+set -e
+ci_scripts/ci_post_clone.sh
+
+swiftformat --lint .
+swiftlint lint --strict
+PROJECT="BTRemote"
 
 # macOS
 xcodebuild \

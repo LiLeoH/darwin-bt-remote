@@ -229,7 +229,7 @@ struct SetupView: View {
         }
 
         @ViewBuilder
-        private func pairedDeviceRow(_ peer: HIDClassicDevice.PairedDevice) -> some View {
+        private func pairedDeviceRow(_ peer: PairedDevice) -> some View {
             let isLive = classic.connectedAddress == peer.id
             HStack {
                 Button {

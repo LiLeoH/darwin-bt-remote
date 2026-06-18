@@ -73,26 +73,28 @@ struct KeyboardView: View {
     }
 
     private var editor: some View {
-        VStack(spacing: 12) {
-            HStack(spacing: 8) {
-                TextField(L10n.Keyboard.prompt, text: $text)
-                    .textFieldStyle(.roundedBorder)
-                    .focused($focused)
-                    .autocorrectionDisabled()
-                #if os(iOS)
-                    .textInputAutocapitalization(.never)
-                    .keyboardType(.asciiCapable)
-                #endif
-                    .onChange(of: text) { handleChange($0) }
-                    .onSubmit { press(.return) }
-                Button(L10n.Keyboard.clear) { clear() }
-                    .buttonStyle(.bordered)
+        GeometryReader { geo in
+            if geo.size.width > geo.size.height {
+                HStack(spacing: 12) {
+                    VStack(spacing: 12) {
+                        inputField
+                        keyPanel
+                        Spacer(minLength: 0)
+                    }
+                    .frame(maxWidth: .infinity)
+                    TrackpadPanel(hid: hid).frame(width: geo.size.width * 0.42)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                VStack(spacing: 12) {
+                    inputField
+                    keyPanel
+                    TrackpadPanel(hid: hid).frame(maxHeight: .infinity)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
-            keyPanel
-            TrackpadPanel(hid: hid).frame(maxHeight: .infinity)
         }
         .padding()
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         #if os(iOS)
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
@@ -101,6 +103,23 @@ struct KeyboardView: View {
                 }
             }
         #endif
+    }
+
+    private var inputField: some View {
+        HStack(spacing: 8) {
+            TextField(L10n.Keyboard.prompt, text: $text)
+                .textFieldStyle(.roundedBorder)
+                .focused($focused)
+                .autocorrectionDisabled()
+            #if os(iOS)
+                .textInputAutocapitalization(.never)
+                .keyboardType(.asciiCapable)
+            #endif
+                .onChange(of: text) { handleChange($0) }
+                .onSubmit { press(.return) }
+            Button(L10n.Keyboard.clear) { clear() }
+                .buttonStyle(.bordered)
+        }
     }
 
     private var keyPanel: some View {

@@ -30,7 +30,7 @@ struct GuideView: View {
             }
         }
         #if os(macOS)
-            .formStyle(.grouped)
+        .formStyle(.grouped)
         #endif
         .navigationTitle(title)
         #if os(iOS)

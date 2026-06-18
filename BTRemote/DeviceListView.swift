@@ -6,8 +6,8 @@ private enum SortField {
 
     var label: LocalizedStringKey {
         switch self {
-        case .name: return L10n.DeviceInfo.name
-        case .signal: return L10n.DeviceInfo.signal
+        case .name: L10n.DeviceInfo.name
+        case .signal: L10n.DeviceInfo.signal
         }
     }
 }
