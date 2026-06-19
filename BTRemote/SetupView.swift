@@ -10,7 +10,7 @@ struct SetupView: View {
     #if os(macOS)
         @EnvironmentObject private var classic: HIDClassicDevice
         @AppStorage("BTRemote.macTransportMode") private var modeRaw: String = TransportMode.defaultMode.rawValue
-        @StateObject private var directInput = DirectInputController()
+        @EnvironmentObject private var directInput: DirectInputController
     #endif
 
     private var classicMode: Bool {
@@ -104,6 +104,8 @@ struct SetupView: View {
                 Text(L10n.TransportMode.section)
             } footer: {
                 Text(classicMode ? L10n.TransportMode.classicCompatibility : L10n.TransportMode.lowEnergyCompatibility)
+                    + Text(verbatim: "\n\n")
+                    + Text(classicMode ? L10n.TransportMode.lowEnergyCompatibility : L10n.TransportMode.classicCompatibility)
             }
         }
     #endif
@@ -244,7 +246,7 @@ struct SetupView: View {
                             .foregroundColor(isLive ? .green : .accentColor)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(verbatim: peer.name).foregroundColor(.primary)
-                            Text(verbatim: peer.id)
+                            Text(verbatim: peer.displayAddress)
                                 .font(.caption2).foregroundColor(.secondary).lineLimit(1)
                         }
                         Spacer()
@@ -283,12 +285,7 @@ struct SetupView: View {
                 get: { directInput.isCapturing },
                 set: { shouldCapture in
                     if shouldCapture {
-                        let input = hid
-                        directInput.start(
-                            sendKeyboard: input.sendKeyboard,
-                            sendMouse: input.sendMouse,
-                            onRelease: {}
-                        )
+                        directInput.start(hid)
                     } else {
                         directInput.stop()
                     }
@@ -355,6 +352,7 @@ private extension KeyboardLEDs {
                 .environmentObject(HIDCentral())
                 .environmentObject(DeviceNameStore())
                 .environmentObject(HIDClassicDevice())
+                .environmentObject(DirectInputController())
         #endif
     }
 #endif

@@ -174,6 +174,10 @@ enum L10n {
         static var stopScanning: LocalizedStringKey {
             "action.stop_scanning"
         }
+
+        static var notNow: LocalizedStringKey {
+            "action.not_now"
+        }
     }
 
     enum Sort {
@@ -326,8 +330,36 @@ extension L10n {
             "direct_input.release_hint"
         }
 
+        static var releaseHintString: String {
+            String(localized: "direct_input.release_hint")
+        }
+
         static var captureFailedString: String {
             String(localized: "direct_input.capture_failed")
+        }
+
+        static var permissionTitle: LocalizedStringKey {
+            "direct_input.permission_title"
+        }
+
+        static var permissionMessage: LocalizedStringKey {
+            "direct_input.permission_message"
+        }
+
+        static var openSettings: LocalizedStringKey {
+            "direct_input.open_settings"
+        }
+
+        static var enable: LocalizedStringKey {
+            "direct_input.enable"
+        }
+
+        static var connectedPromptTitle: LocalizedStringKey {
+            "direct_input.connected_prompt_title"
+        }
+
+        static var connectedPromptMessage: LocalizedStringKey {
+            "direct_input.connected_prompt_message"
         }
     }
 

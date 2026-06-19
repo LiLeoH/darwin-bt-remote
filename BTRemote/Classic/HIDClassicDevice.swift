@@ -283,12 +283,7 @@
         }
 
         private func _formatAddressForLookup(_ canonical: String) -> String {
-            var result = ""
-            for (i, ch) in canonical.enumerated() {
-                if i > 0, i % 2 == 0 { result.append("-") }
-                result.append(ch)
-            }
-            return result
+            canonical.groupedInPairs(separator: "-")
         }
 
         /// HID Interrupt PDU: header 0xA1 (DATA / INPUT) + reportID + payload
@@ -440,7 +435,20 @@
         let id: String
         let name: String
         var isConnected: Bool = false
+        var displayAddress: String {
+            id.uppercased().groupedInPairs(separator: ":")
+        }
 
         private enum CodingKeys: String, CodingKey { case id, name }
+    }
+
+    private extension String {
+        func groupedInPairs(separator: String) -> String {
+            stride(from: 0, to: count, by: 2).map {
+                let start = index(startIndex, offsetBy: $0)
+                let end = index(start, offsetBy: 2, limitedBy: endIndex) ?? endIndex
+                return String(self[start ..< end])
+            }.joined(separator: separator)
+        }
     }
 #endif

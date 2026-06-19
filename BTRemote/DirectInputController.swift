@@ -1,6 +1,5 @@
 #if os(macOS)
     import AppKit
-    import ApplicationServices
     import CoreGraphics
     import Foundation
 
@@ -8,9 +7,11 @@
     final class DirectInputController: ObservableObject {
         @Published private(set) var isCapturing = false
         @Published private(set) var lastError: String?
+        @Published private(set) var needsAccessibility = false
 
         private var eventTap: CFMachPort?
         private var runLoopSource: CFRunLoopSource?
+        private var statusItem: NSStatusItem?
         private var pressedKeys: Set<Keycode> = []
         private var pressedMouseButtons: MouseButtons = []
         private var modifiers: KeyboardModifiers = []
@@ -19,6 +20,11 @@
         private var sendKeyboard: ((KeyboardReport) -> Void)?
         private var sendMouse: ((MouseReport) -> Void)?
         private var onRelease: (() -> Void)?
+
+        /// capture input and route it to HID backend
+        func start(_ hid: HIDInput) {
+            start(sendKeyboard: hid.sendKeyboard, sendMouse: hid.sendMouse, onRelease: {})
+        }
 
         func start(
             sendKeyboard: @escaping (KeyboardReport) -> Void,
@@ -35,9 +41,8 @@
             modifiers = []
             lastError = nil
 
-            guard Self.hasAccessibilityPermission else {
-                lastError = L10n.DirectInput.captureFailedString
-                Self.openAccessibilitySettings()
+            guard AccessibilityPermission.isTrusted else {
+                needsAccessibility = true
                 clearHandlers()
                 onRelease()
                 return
@@ -87,6 +92,7 @@
             NSCursor.hide()
             cursorHidden = true
             isCapturing = true
+            showStatusItem()
         }
 
         func stop() {
@@ -111,13 +117,42 @@
             sendKeyboard?(.zero)
             sendMouse?(.zero)
             clearHandlers()
+            hideStatusItem()
             isCapturing = false
+        }
+
+        func clearAccessibilityRequest() {
+            needsAccessibility = false
         }
 
         private func clearHandlers() {
             sendKeyboard = nil
             sendMouse = nil
             onRelease = nil
+        }
+
+        /// menu bar warning shown while capturing, since the cursor is hidden and the window is unreachable
+        private func showStatusItem() {
+            let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+            if let button = item.button {
+                let icon = NSImage(systemSymbolName: "keyboard", accessibilityDescription: nil)?
+                    .withSymbolConfiguration(NSImage.SymbolConfiguration(paletteColors: [.systemRed]))
+                icon?.isTemplate = false
+                button.image = icon
+                button.imagePosition = .imageLeading
+                button.attributedTitle = NSAttributedString(
+                    string: "  " + L10n.DirectInput.releaseHintString,
+                    attributes: [.foregroundColor: NSColor.systemRed]
+                )
+            }
+            statusItem = item
+        }
+
+        private func hideStatusItem() {
+            if let statusItem {
+                NSStatusBar.system.removeStatusItem(statusItem)
+            }
+            statusItem = nil
         }
 
         private func handle(_ event: DirectInputEvent) {
@@ -155,22 +190,6 @@
 
         private func sendKeyboardReport() {
             sendKeyboard?(KeyboardReport(modifiers: modifiers, keys: Array(pressedKeys).prefix(6).map(\.self)))
-        }
-
-        private static var hasAccessibilityPermission: Bool {
-            AXIsProcessTrusted()
-        }
-
-        private static func openAccessibilitySettings() {
-            let promptOption = "AXTrustedCheckOptionPrompt"
-            _ = AXIsProcessTrustedWithOptions([promptOption: true] as CFDictionary)
-
-            guard let url = URL(
-                string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
-            ) else {
-                return
-            }
-            NSWorkspace.shared.open(url)
         }
 
         private nonisolated static let eventTapCallback: CGEventTapCallBack = { _, type, cgEvent, userInfo in

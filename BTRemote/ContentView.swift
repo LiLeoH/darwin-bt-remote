@@ -8,6 +8,9 @@ struct ContentView: View {
     #if os(macOS)
         @EnvironmentObject private var classic: HIDClassicDevice
         @Environment(\.macTransport) private var macTransport
+        @StateObject private var directInput = DirectInputController()
+        @State private var showAccessibilityPrompt = false
+        @State private var showConnectPrompt = false
     #endif
 
     private enum Tab {
@@ -37,11 +40,41 @@ struct ContentView: View {
                 .tabItem { Label(L10n.Tab.settings, systemImage: "slider.horizontal.3") }
                 .tag(Tab.settings)
         }
+        #if os(macOS)
+        .environmentObject(directInput)
+        #endif
         .onChange(of: hid.isConnected) { connected in
-            if connected, tab == .setup { tab = .keyboard }
+            guard connected else { return }
+            #if os(macOS)
+                if !directInput.isCapturing { showConnectPrompt = true }
+            #else
+                tab = .keyboard
+            #endif
         }
         #if os(macOS)
         .frame(minWidth: 480, idealWidth: 560, minHeight: 640, idealHeight: 800)
+        .onAppear {
+            if !AccessibilityPermission.isTrusted { showAccessibilityPrompt = true }
+        }
+        .onChange(of: directInput.needsAccessibility) { needs in
+            guard needs else { return }
+            showAccessibilityPrompt = true
+            directInput.clearAccessibilityRequest()
+        }
+        .alert(L10n.DirectInput.permissionTitle, isPresented: $showAccessibilityPrompt) {
+            Button(L10n.DirectInput.openSettings) { AccessibilityPermission.request() }
+            Button(L10n.Action.notNow, role: .cancel) {}
+        } message: {
+            Text(L10n.DirectInput.permissionMessage)
+        }
+        .alert(L10n.DirectInput.connectedPromptTitle, isPresented: $showConnectPrompt) {
+            Button(L10n.DirectInput.enable) { directInput.start(hid) }
+            Button(L10n.Action.notNow, role: .cancel) { tab = .keyboard }
+        } message: {
+            Text(L10n.DirectInput.connectedPromptMessage)
+                + Text(verbatim: "\n\n")
+                + Text(L10n.DirectInput.releaseHint)
+        }
         #endif
     }
 }

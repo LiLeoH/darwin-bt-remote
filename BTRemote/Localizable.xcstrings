@@ -1,6 +1,17 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "action.not_now": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not Now"
+          }
+        }
+      }
+    },
     "action.remove_all_services": {
       "extractionState": "manual",
       "localizations": {
@@ -562,13 +573,79 @@
         }
       }
     },
+    "direct_input.connected_prompt_message": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable Direct Input to use the device with your current keyboard and mouse."
+          }
+        }
+      }
+    },
+    "direct_input.connected_prompt_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New device connected"
+          }
+        }
+      }
+    },
+    "direct_input.enable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable"
+          }
+        }
+      }
+    },
+    "direct_input.open_settings": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Settings"
+          }
+        }
+      }
+    },
+    "direct_input.permission_message": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direct Input needs Accessibility access to capture your current keyboard and mouse. Allow this application in System Settings."
+          }
+        }
+      }
+    },
+    "direct_input.permission_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow Accessibility access"
+          }
+        }
+      }
+    },
     "direct_input.release_hint": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Press ⌃ + ⌥ (control + option) keys together to release capture."
+            "value": "Press ⌃ + ⌥ (control + option) to release capture."
           }
         }
       }
@@ -1272,7 +1349,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transport"
+            "value": "Transport Compatibility"
           }
         }
       }
@@ -1470,7 +1547,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Select \"Connect\" to establish a connection. You may need to wait a few seconds before it activates. Occasionally you may want to try again by clicking \"Connect\" a second time if it fails to activate."
+            "value": "Select \"Connect\" to establish a connection. You may need to wait a few seconds before it activates. Occasionally you may need to try again by clicking \"Connect\" a second time to activate a stable connection."
           }
         }
       }
@@ -1547,7 +1624,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "On the target device, open Bluetooth settings and pair with \"BTRemote\"."
+            "value": "On the target device, open Bluetooth settings and pair with \"BTRemote\". In some edge cases, you may also try using this device's original name."
           }
         }
       }
@@ -1778,7 +1855,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "For use with Apple devices (iOS, iPadOS, or macOS), or Linux, Android, and ChromeOS only. For other devices, use Low Energy mode instead."
+            "value": "Bluetooth Classic Mode: For use with Apple devices (iOS, iPadOS, or macOS), or Linux, Android, and ChromeOS only."
           }
         }
       }
@@ -1822,7 +1899,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "For use with Apple devices (iOS, iPadOS, or macOS), or Windows only. For other devices, use Classic mode instead."
+            "value": "Bluetooth Low Energy Mode: For use with Apple devices (iOS, iPadOS, or macOS), or Windows only."
           }
         }
       }
