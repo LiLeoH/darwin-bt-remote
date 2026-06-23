@@ -330,6 +330,10 @@ extension L10n {
             "direct_input.release_hint"
         }
 
+        static var iosNoDevice: LocalizedStringKey {
+            "direct_input.ios_no_device"
+        }
+
         static var releaseHintString: String {
             String(localized: "direct_input.release_hint")
         }

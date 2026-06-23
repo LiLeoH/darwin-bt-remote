@@ -606,6 +606,17 @@
         }
       }
     },
+    "direct_input.ios_no_device": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect a hardware keyboard or trackpad to use direct input."
+          }
+        }
+      }
+    },
     "direct_input.open_settings": {
       "extractionState": "manual",
       "localizations": {

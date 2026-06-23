@@ -7,10 +7,10 @@ struct SetupView: View {
     @EnvironmentObject private var names: DeviceNameStore
     @AppStorage(AppSettings.developerModeKey) private var developerMode = false
     @State private var selectedInfo: DeviceEntry?
+    @EnvironmentObject private var directInput: DirectInputController
     #if os(macOS)
         @EnvironmentObject private var classic: HIDClassicDevice
         @AppStorage("BTRemote.macTransportMode") private var modeRaw: String = TransportMode.defaultMode.rawValue
-        @EnvironmentObject private var directInput: DirectInputController
     #endif
 
     private var classicMode: Bool {
@@ -45,6 +45,9 @@ struct SetupView: View {
                 form.navigationTitle(L10n.App.title)
             }
             .navigationViewStyle(.stack)
+            .onChange(of: hid.isActive) { isActive in
+                if !isActive { directInput.stop() }
+            }
         #endif
     }
 
@@ -65,9 +68,7 @@ struct SetupView: View {
                 }
             }
             statusSection
-            #if os(macOS)
-                if hid.isActive { directInputSection }
-            #endif
+            if hid.isActive { directInputSection }
             if let lastError = hid.activeError {
                 Section(header: Text(L10n.Section.lastError)) {
                     Text(verbatim: lastError).foregroundColor(.red).font(.caption)
@@ -294,6 +295,38 @@ struct SetupView: View {
         }
     #endif
 
+    #if os(iOS)
+        private var directInputSection: some View {
+            Section(header: Text(L10n.DirectInput.section)) {
+                Toggle(isOn: directInputBinding) {
+                    Label(L10n.DirectInput.toggle, systemImage: "rectangle.and.hand.point.up.left")
+                }
+                .disabled(!directInput.hasInputDevice)
+                Text(directInput.hasInputDevice ? L10n.DirectInput.releaseHint : L10n.DirectInput.iosNoDevice)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                if let lastError = directInput.lastError {
+                    Text(verbatim: lastError)
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
+            }
+        }
+
+        private var directInputBinding: Binding<Bool> {
+            Binding(
+                get: { directInput.isCapturing },
+                set: { shouldCapture in
+                    if shouldCapture {
+                        directInput.start(hid)
+                    } else {
+                        directInput.stop()
+                    }
+                }
+            )
+        }
+    #endif
+
     private func row(_ title: LocalizedStringKey, _ value: Text) -> some View {
         HStack {
             Text(title)
@@ -346,6 +379,7 @@ private extension KeyboardLEDs {
                 .environmentObject(HIDPeripheral())
                 .environmentObject(HIDCentral())
                 .environmentObject(DeviceNameStore())
+                .environmentObject(DirectInputController())
         #else
             SetupView()
                 .environmentObject(HIDPeripheral())
