@@ -7,6 +7,10 @@ enum AppSettings {
     static let developerModeKey = "BTRemote.developerMode"
     static let useServiceChangedKey = "BTRemote.useServiceChanged"
     static let deviceNamesKey = "BTRemote.deviceNames"
+    static let hasSeenWelcomeKey = "BTRemote.hasSeenWelcome"
+
+    static let repoURL = URL(string: "https://github.com/jqssun/darwin-bt-remote")!
+    static let instructionsURL = URL(string: "https://github.com/jqssun/darwin-bt-remote/blob/main/README.md")!
 
     static let defaultPointerSensitivity = 5.0
     static let pointerSensitivityRange = 0.5 ... 10.0

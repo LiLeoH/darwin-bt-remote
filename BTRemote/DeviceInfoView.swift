@@ -27,7 +27,7 @@ struct DeviceInfoView: View {
                 } else {
                     infoRow(L10n.DeviceInfo.name, Text(verbatim: entry.displayName))
                 }
-                infoRow(L10n.DeviceInfo.identifier, Text(verbatim: entry.id.uuidString))
+                identifierRow(Text(verbatim: entry.id.uuidString))
                 infoRow(L10n.DeviceInfo.manufacturer, Text(verbatim: entry.manufacturer ?? L10n.Value.noneString))
             }
             if hasAdvertisement {
@@ -84,6 +84,31 @@ struct DeviceInfoView: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
                 .textSelection(.enabled)
+        }
+    }
+
+    @ViewBuilder
+    private func identifierRow(_ value: Text) -> some View {
+        let label = Text(L10n.DeviceInfo.identifier)
+        let detail = value.foregroundColor(.secondary).lineLimit(1).minimumScaleFactor(0.5).textSelection(.enabled)
+        if #available(iOS 16, *) {
+            ViewThatFits(in: .horizontal) {
+                HStack {
+                    label
+                    Spacer(minLength: 12)
+                    detail
+                }
+                stackedRow(label, detail)
+            }
+        } else {
+            stackedRow(label, detail)
+        }
+    }
+
+    private func stackedRow(_ label: Text, _ detail: some View) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            label
+            detail
         }
     }
 }

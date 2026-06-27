@@ -53,8 +53,12 @@ extension L10n {
     }
 
     enum Setup {
-        static var guide: LocalizedStringKey {
-            "setup.guide"
+        static var help: LocalizedStringKey {
+            "setup.help"
+        }
+
+        static var videoInstructions: LocalizedStringKey {
+            "setup.video_instructions"
         }
 
         static var activeLegend: LocalizedStringKey {
@@ -115,6 +119,26 @@ extension L10n {
 
         static var troubleshooting: LocalizedStringKey {
             "setup.troubleshooting"
+        }
+
+        static var iCloudPaired: LocalizedStringKey {
+            "setup.icloud_paired"
+        }
+
+        static var findGuideHint: LocalizedStringKey {
+            "setup.find_guide_hint"
+        }
+
+        static var deviceNameLimitation: LocalizedStringKey {
+            "setup.device_name_limitation"
+        }
+
+        static var bluetoothOffTitle: LocalizedStringKey {
+            "setup.bluetooth_off_title"
+        }
+
+        static var bluetoothOffMessage: LocalizedStringKey {
+            "setup.bluetooth_off_message"
         }
     }
 

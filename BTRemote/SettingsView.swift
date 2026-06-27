@@ -13,11 +13,10 @@ struct SettingsView: View {
     @AppStorage(AppSettings.scrollSensitivityKey) private var scrollSensitivity = AppSettings.defaultScrollSensitivity
     @AppStorage(AppSettings.developerModeKey) private var developerMode = false
     @AppStorage(AppSettings.useServiceChangedKey) private var forceServiceChanged = true
+    @AppStorage(AppSettings.hasSeenWelcomeKey) private var hasSeenWelcome = false
     #if os(iOS)
         @AppStorage(AppSettings.autoAdvertiseKey) private var autoAdvertise = true
     #endif
-
-    private let sourceCodeURL = URL(string: "https://github.com/jqssun/darwin-bt-remote")!
 
     private var hid: HIDInput {
         #if os(macOS)
@@ -59,7 +58,7 @@ struct SettingsView: View {
             }
             Section(header: Text(L10n.Settings.advanced)) {
                 Toggle(L10n.Settings.developerMode, isOn: $developerMode)
-                Link(destination: sourceCodeURL) {
+                Link(destination: AppSettings.repoURL) {
                     Label(L10n.Settings.sourceCode, systemImage: "chevron.left.forwardslash.chevron.right")
                 }
             }
@@ -84,6 +83,7 @@ struct SettingsView: View {
         if let bundleID = Bundle.main.bundleIdentifier {
             UserDefaults.standard.removePersistentDomain(forName: bundleID)
         }
+        hasSeenWelcome = false
     }
 
     private var batterySection: some View {

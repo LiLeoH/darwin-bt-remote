@@ -178,6 +178,28 @@ enum L10n {
         static var notNow: LocalizedStringKey {
             "action.not_now"
         }
+
+        static var done: LocalizedStringKey {
+            "action.done"
+        }
+
+        static var settings: LocalizedStringKey {
+            "action.settings"
+        }
+    }
+
+    enum Welcome {
+        static var title: LocalizedStringKey {
+            "welcome.title"
+        }
+
+        static var message: LocalizedStringKey {
+            "welcome.message"
+        }
+
+        static var viewGuide: LocalizedStringKey {
+            "welcome.view_guide"
+        }
     }
 
     enum Sort {

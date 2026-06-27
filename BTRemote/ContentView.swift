@@ -6,6 +6,10 @@ struct ContentView: View {
     @EnvironmentObject private var lowEnergy: HIDPeripheral
     @EnvironmentObject private var central: HIDCentral
     @StateObject private var directInput = DirectInputController()
+    @Environment(\.openURL) private var openURL
+    @AppStorage(AppSettings.hasSeenWelcomeKey) private var hasSeenWelcome = false
+    @State private var showWelcome = false
+    @State private var showGuide = false
     #if os(macOS)
         @EnvironmentObject private var classic: HIDClassicDevice
         @Environment(\.macTransport) private var macTransport
@@ -52,11 +56,20 @@ struct ContentView: View {
                     tab = .keyboard
                 #endif
             }
+            .onAppear(perform: _onAppear)
+            .alert(L10n.Welcome.title, isPresented: $showWelcome) {
+                Button(L10n.Welcome.viewGuide) {
+                    hasSeenWelcome = true
+                    showGuide = true
+                }
+                .keyboardShortcut(.defaultAction)
+                Button(L10n.Setup.videoInstructions) { openURL(AppSettings.instructionsURL) }
+            } message: {
+                Text(L10n.Welcome.message)
+            }
+            .sheet(isPresented: $showGuide) { guideSheet }
         #if os(macOS)
             .frame(minWidth: 480, idealWidth: 560, minHeight: 640, idealHeight: 800)
-            .onAppear {
-                if !AccessibilityPermission.isTrusted { showAccessibilityPrompt = true }
-            }
             .onChange(of: directInput.needsAccessibility) { needs in
                 guard needs else { return }
                 showAccessibilityPrompt = true
@@ -77,6 +90,34 @@ struct ContentView: View {
                     + Text(L10n.DirectInput.releaseHint)
             }
         #endif
+    }
+
+    private func _onAppear() {
+        if !hasSeenWelcome {
+            showWelcome = true
+        }
+        #if os(macOS)
+            if hasSeenWelcome, !AccessibilityPermission.isTrusted { showAccessibilityPrompt = true }
+        #endif
+    }
+
+    private var guideSheet: some View {
+        #if os(macOS)
+            NavigationStack { guideSheetContent }
+                .frame(minWidth: 420, minHeight: 520)
+        #else
+            NavigationView { guideSheetContent }
+                .navigationViewStyle(.stack)
+        #endif
+    }
+
+    private var guideSheetContent: some View {
+        GuideView(transport: .lowEnergy)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(L10n.Action.done) { showGuide = false }
+                }
+            }
     }
 }
 

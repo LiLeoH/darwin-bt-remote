@@ -1,6 +1,17 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "action.done": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        }
+      }
+    },
     "action.not_now": {
       "extractionState": "manual",
       "localizations": {
@@ -30,6 +41,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Scan"
+          }
+        }
+      }
+    },
+    "action.settings": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
           }
         }
       }
@@ -337,7 +359,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "✓ means the device is connected."
+            "value": "✓ indicates the device is connected."
           }
         }
       }
@@ -612,7 +634,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connect a hardware keyboard or trackpad to use direct input."
+            "value": "Connect a hardware keyboard or trackpad to use Direct Input."
           }
         }
       }
@@ -1514,7 +1536,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "✓ means the device is active and subscribed."
+            "value": "✓ indicates the device is active and subscribed."
+          }
+        }
+      }
+    },
+    "setup.bluetooth_off_message": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bluetooth must be on to proceed. Enable it and try again."
+          }
+        }
+      }
+    },
+    "setup.bluetooth_off_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn On Bluetooth"
           }
         }
       }
@@ -1525,7 +1569,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use Bluetooth Classic"
+            "value": "Bluetooth Classic Guide"
           }
         }
       }
@@ -1574,13 +1618,35 @@
         }
       }
     },
+    "setup.device_name_limitation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Due to platform limitations, the name of the target device cannot be displayed unless it has previously been paired with this device."
+          }
+        }
+      }
+    },
+    "setup.find_guide_hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can find this guide at the top of the \"Setup\" tab."
+          }
+        }
+      }
+    },
     "setup.from_app": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connect from This Application"
+            "value": "Method B: Connect from This Application"
           }
         }
       }
@@ -1602,7 +1668,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tap the device to connect. You may identify the device by using the information button."
+            "value": "Tap the device to connect. You may also identify a device by using the information button."
           }
         }
       }
@@ -1613,7 +1679,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connect from External Device"
+            "value": "Method A: Connect from External Device"
           }
         }
       }
@@ -1624,7 +1690,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Make sure advertising is on."
+            "value": "Ensure this application is open and advertising. You can check this in \"Status\" within the \"Setup\" tab."
           }
         }
       }
@@ -1635,7 +1701,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "On the target device, open Bluetooth settings and pair with \"BTRemote\". In some edge cases, you may also try using this device's original name."
+            "value": "On the target device, open Bluetooth settings and pair with \"BTRemote\". In some edge cases, you may also try using this device's broadcasted name."
           }
         }
       }
@@ -1646,18 +1712,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Make sure you select \"Pair\" or \"Connect\" on the target device first, then confirm \"Pair\" on this device."
+            "value": "Select \"Pair\" or \"Connect\" on the target device first, then confirm with \"Pair\" on this device."
           }
         }
       }
     },
-    "setup.guide": {
+    "setup.help": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Guide"
+            "value": "Help"
+          }
+        }
+      }
+    },
+    "setup.icloud_paired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For iCloud paired devices that do not show up in Bluetooth settings, you must connect from this application instead following instructions below."
           }
         }
       }
@@ -1668,7 +1745,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use Bluetooth Low Energy"
+            "value": "Bluetooth Low Energy Guide"
           }
         }
       }
@@ -1679,7 +1756,18 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "If there is no response on the target, forget the pairing on both devices in their respective Settings, and then initiate pairing again from the target device."
+            "value": "If there is no response on the target, forget the pairing on both devices in their respective Settings, turn Bluetooth off and on, and then initiate pairing again from the target device."
+          }
+        }
+      }
+    },
+    "setup.video_instructions": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Video Instructions"
           }
         }
       }
@@ -1944,6 +2032,39 @@
           "stringUnit": {
             "state": "translated",
             "value": "Yes"
+          }
+        }
+      }
+    },
+    "welcome.message": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Learn how to connect over Bluetooth. Open the in-app guide or watch the video walkthrough."
+          }
+        }
+      }
+    },
+    "welcome.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Getting Started"
+          }
+        }
+      }
+    },
+    "welcome.view_guide": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View Guide"
           }
         }
       }

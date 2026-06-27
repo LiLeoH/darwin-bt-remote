@@ -12,7 +12,7 @@ struct GuideView: View {
         Form {
             switch transport {
             case .lowEnergy:
-                Section(header: Text(L10n.Setup.fromDevice), footer: Text(troubleshooting)) {
+                Section(header: Text(L10n.Setup.fromDevice), footer: fromDeviceFooter) {
                     step("1.circle", L10n.Setup.fromDeviceStep1)
                     step("2.circle", L10n.Setup.fromDeviceStep2)
                     step("3.circle", L10n.Setup.fromDeviceStep3)
@@ -44,13 +44,28 @@ struct GuideView: View {
                 transportInfo
             #endif
             Text(troubleshooting)
+            locationHint
         }
     }
 
-    @ViewBuilder private var fromAppFooter: some View {
-        #if os(macOS)
-            transportInfo
-        #endif
+    private var fromDeviceFooter: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(L10n.Setup.iCloudPaired)
+            Text(troubleshooting)
+        }
+    }
+
+    private var fromAppFooter: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            #if os(macOS)
+                transportInfo
+            #endif
+            locationHint
+        }
+    }
+
+    private var locationHint: some View {
+        Text(L10n.Setup.findGuideHint)
     }
 
     private var title: LocalizedStringKey {

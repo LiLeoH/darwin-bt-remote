@@ -1,5 +1,8 @@
 import CoreBluetooth
 import SwiftUI
+#if os(macOS)
+    import AppKit
+#endif
 
 struct SetupView: View {
     @EnvironmentObject private var lowEnergy: HIDPeripheral
@@ -7,6 +10,9 @@ struct SetupView: View {
     @EnvironmentObject private var names: DeviceNameStore
     @AppStorage(AppSettings.developerModeKey) private var developerMode = false
     @State private var selectedInfo: DeviceEntry?
+    #if os(macOS)
+        @State private var showBluetoothOff = false
+    #endif
     @EnvironmentObject private var directInput: DirectInputController
     #if os(macOS)
         @EnvironmentObject private var classic: HIDClassicDevice
@@ -76,10 +82,18 @@ struct SetupView: View {
             }
         }
         .sheet(item: $selectedInfo) { DeviceInfoView(entry: $0) }
+        #if os(macOS)
+            .alert(L10n.Setup.bluetoothOffTitle, isPresented: $showBluetoothOff) {
+                Button(L10n.Action.settings) { _openBluetoothSettings() }
+                Button(L10n.Action.notNow, role: .cancel) {}
+            } message: {
+                Text(L10n.Setup.bluetoothOffMessage)
+            }
+        #endif
     }
 
     private var guideSection: some View {
-        Section(header: Text(L10n.Setup.guide)) {
+        Section(header: Text(L10n.Setup.help)) {
             NavigationLink { GuideView(transport: .lowEnergy) } label: {
                 Label(L10n.Setup.lowEnergyGuide, systemImage: "questionmark.circle")
             }
@@ -88,6 +102,9 @@ struct SetupView: View {
                     Label(L10n.Setup.classicGuide, systemImage: "questionmark.circle")
                 }
             #endif
+            Link(destination: AppSettings.instructionsURL) {
+                Label(L10n.Setup.videoInstructions, systemImage: "play.circle")
+            }
         }
     }
 
@@ -138,13 +155,13 @@ struct SetupView: View {
     }
 
     private var connectionSection: some View {
-        Section(header: Text(L10n.Section.connection)) {
+        Section(header: Text(L10n.Section.connection), footer: Text(L10n.Setup.deviceNameLimitation)) {
             if lowEnergy.isAdvertising {
                 Button(role: .destructive) { lowEnergy.stop() } label: {
                     Label(L10n.Action.stopAdvertising, systemImage: "stop.circle")
                 }
             } else {
-                Button { lowEnergy.start() } label: {
+                Button { _startAdvertising() } label: {
                     Label(L10n.Action.startAdvertising, systemImage: "antenna.radiowaves.left.and.right")
                 }
             }
@@ -198,6 +215,25 @@ struct SetupView: View {
             names.setName(scanned, for: uuid)
         }
     }
+
+    private func _startAdvertising() {
+        if lowEnergy.state == .poweredOn {
+            lowEnergy.start()
+            return
+        }
+        #if os(iOS)
+            lowEnergy.promptPowerAlert()
+        #else
+            showBluetoothOff = true
+        #endif
+    }
+
+    #if os(macOS)
+        private func _openBluetoothSettings() {
+            guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.systempreferences") else { return }
+            NSWorkspace.shared.open(url)
+        }
+    #endif
 
     private func connectedDeviceRow(_ entry: DeviceEntry) -> some View {
         ConnectedDeviceRow(
@@ -266,13 +302,10 @@ struct SetupView: View {
 
     #if os(macOS)
         private var directInputSection: some View {
-            Section(header: Text(L10n.DirectInput.section)) {
+            Section(header: Text(L10n.DirectInput.section), footer: Text(L10n.DirectInput.releaseHint)) {
                 Toggle(isOn: directInputBinding) {
                     Label(L10n.DirectInput.toggle, systemImage: "rectangle.and.hand.point.up.left")
                 }
-                Text(L10n.DirectInput.releaseHint)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
                 if let lastError = directInput.lastError {
                     Text(verbatim: lastError)
                         .font(.caption)
@@ -297,14 +330,14 @@ struct SetupView: View {
 
     #if os(iOS)
         private var directInputSection: some View {
-            Section(header: Text(L10n.DirectInput.section)) {
+            Section(
+                header: Text(L10n.DirectInput.section),
+                footer: Text(directInput.hasInputDevice ? L10n.DirectInput.releaseHint : L10n.DirectInput.iosNoDevice)
+            ) {
                 Toggle(isOn: directInputBinding) {
                     Label(L10n.DirectInput.toggle, systemImage: "rectangle.and.hand.point.up.left")
                 }
                 .disabled(!directInput.hasInputDevice)
-                Text(directInput.hasInputDevice ? L10n.DirectInput.releaseHint : L10n.DirectInput.iosNoDevice)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
                 if let lastError = directInput.lastError {
                     Text(verbatim: lastError)
                         .font(.caption)

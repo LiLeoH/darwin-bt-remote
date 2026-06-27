@@ -72,6 +72,35 @@ final class HIDPeripheral: NSObject, ObservableObject {
         isAdvertising = false
     }
 
+    func promptPowerAlert() {
+        guard state != .poweredOn else { return }
+        _resetForRestart()
+        start()
+    }
+
+    private func _resetForRestart() {
+        pManager?.stopAdvertising()
+        pManager = nil
+        isAdvertising = false
+        isHIDServiceAdded = false
+        isReadyToSendNotification = true
+        pendingBroadcast = nil
+        batteryServiceObj = nil
+        deviceInfoServiceObj = nil
+        hidServiceObj = nil
+        serviceChangedObj = nil
+        serviceChangedArmed = false
+        batteryLevelChar = nil
+        bootMouseInputChar = nil
+        bootKeyboardInputChar = nil
+        bootKeyboardOutputChar = nil
+        charsByReportID.removeAll()
+        subscribedCentrals.removeAll()
+        inactiveCentrals.removeAll()
+        connectedCentrals.removeAll()
+        centralObjects.removeAll()
+    }
+
     func sendMouse(_ report: MouseReport) {
         broadcast(report.data, reportID: .mouse)
     }
