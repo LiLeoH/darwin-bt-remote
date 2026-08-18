@@ -1,6 +1,6 @@
 import Foundation
 
-struct MouseReport: Sendable, Equatable {
+struct MouseReport: Equatable {
     var buttons: MouseButtons = []
     var dX: Int8 = 0
     var dY: Int8 = 0
@@ -18,14 +18,14 @@ struct MouseReport: Sendable, Equatable {
     }
 }
 
-struct MouseButtons: OptionSet, Sendable, Equatable {
+struct MouseButtons: OptionSet, Equatable {
     let rawValue: UInt8
     static let left = MouseButtons(rawValue: 1 << 0)
     static let right = MouseButtons(rawValue: 1 << 1)
     static let middle = MouseButtons(rawValue: 1 << 2)
 }
 
-struct KeyboardReport: Sendable, Equatable {
+struct KeyboardReport: Equatable {
     var modifiers: KeyboardModifiers = []
     var keys: [Keycode] = []
 
@@ -42,7 +42,7 @@ struct KeyboardReport: Sendable, Equatable {
     }
 }
 
-struct KeyboardModifiers: OptionSet, Sendable, Equatable {
+struct KeyboardModifiers: OptionSet, Equatable, Codable, Hashable {
     let rawValue: UInt8
     static let leftCtrl = KeyboardModifiers(rawValue: 1 << 0)
     static let leftShift = KeyboardModifiers(rawValue: 1 << 1)
@@ -54,7 +54,7 @@ struct KeyboardModifiers: OptionSet, Sendable, Equatable {
     static let rightGUI = KeyboardModifiers(rawValue: 1 << 7)
 }
 
-struct KeyboardLEDs: OptionSet, Sendable, Equatable {
+struct KeyboardLEDs: OptionSet, Equatable {
     let rawValue: UInt8
     static let numLock = KeyboardLEDs(rawValue: 1 << 0)
     static let capsLock = KeyboardLEDs(rawValue: 1 << 1)
@@ -72,7 +72,7 @@ struct KeyboardLEDs: OptionSet, Sendable, Equatable {
 }
 
 /// USB HID usage page 0x07
-enum Keycode: UInt8, Sendable, Equatable, Hashable {
+enum Keycode: UInt8, Equatable, Hashable, Codable {
     case a = 0x04, b, c, d, e, f, g, h, i, j, k, l, m
     case n, o, p, q, r, s, t, u, v, w, x, y, z
     case digit1 = 0x1E, digit2, digit3, digit4, digit5, digit6, digit7, digit8, digit9, digit0
@@ -95,13 +95,14 @@ enum Keycode: UInt8, Sendable, Equatable, Hashable {
     case capsLock = 0x39
     case f1 = 0x3A, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12
     case printScreen = 0x46
+    case deleteForward = 0x4C
     case rightArrow = 0x4F
     case leftArrow = 0x50
     case downArrow = 0x51
     case upArrow = 0x52
 }
 
-struct SystemControlReport: Sendable, Equatable {
+struct SystemControlReport: Equatable {
     var actions: SystemActions = []
 
     static let zero = SystemControlReport()
@@ -111,7 +112,7 @@ struct SystemControlReport: Sendable, Equatable {
     }
 }
 
-struct SystemActions: OptionSet, Sendable, Equatable {
+struct SystemActions: OptionSet, Equatable {
     let rawValue: UInt8
     static let powerDown = SystemActions(rawValue: 1 << 0)
     static let sleep = SystemActions(rawValue: 1 << 1)
@@ -124,7 +125,7 @@ struct SystemActions: OptionSet, Sendable, Equatable {
 }
 
 /// consumer report (5 bytes)
-struct ConsumerReport: Sendable, Equatable {
+struct ConsumerReport: Equatable {
     var key: ConsumerKey = .none
     var acUsageA: UInt8 = 0
     var acUsageB: UInt8 = 0
@@ -145,7 +146,7 @@ struct ConsumerReport: Sendable, Equatable {
 }
 
 /// USB HID usage page 0x0C
-enum ConsumerKey: UInt16, Sendable, Equatable {
+enum ConsumerKey: UInt16, Equatable {
     case none = 0x0000
     case playPause = 0x00CD
     case scanNext = 0x00B5
@@ -171,4 +172,71 @@ enum ConsumerKey: UInt16, Sendable, Equatable {
 extension ConsumerReport {
     static let acHome = ConsumerReport(acUsageB: 0x23)
     static let acBack = ConsumerReport(acUsageB: 0x24)
+}
+
+extension Keycode {
+    /// Display label for UI, e.g. "A", "F1", "←", "Space".
+    var displayName: String {
+        if (0x04 ... 0x1D).contains(rawValue) {
+            let letters = "abcdefghijklmnopqrstuvwxyz"
+            let index = letters.index(letters.startIndex, offsetBy: Int(rawValue) - 0x04)
+            return String(letters[index])
+        }
+        if (0x1E ... 0x27).contains(rawValue) {
+            let n = Int(rawValue) - 0x1E + 1
+            return n == 10 ? "0" : String(n)
+        }
+        switch self {
+        case .space: return "Space"
+        case .return: return "↩"
+        case .escape: return "Esc"
+        case .tab: return "Tab"
+        case .backspace: return "⌫"
+        case .capsLock: return "⇪"
+        case .minus: return "-"
+        case .equal: return "="
+        case .leftBracket: return "["
+        case .rightBracket: return "]"
+        case .backslash: return "\\"
+        case .semicolon: return ";"
+        case .quote: return "'"
+        case .grave: return "`"
+        case .comma: return ","
+        case .period: return "."
+        case .slash: return "/"
+        case .printScreen: return "PrtSc"
+        case .deleteForward: return "Del"
+        case .leftArrow: return "←"
+        case .rightArrow: return "→"
+        case .downArrow: return "↓"
+        case .upArrow: return "↑"
+        default: return "?"
+        }
+    }
+
+    /// Map a macOS virtual key code to a HID `Keycode`, when representable.
+    init?(macVirtualKey key: UInt16) {
+        guard let code = Self.macVirtualKeys[key] else { return nil }
+        self = code
+    }
+
+    /// macOS virtual key code -> HID usage id (subset covering the keys we route).
+    static let macVirtualKeys: [UInt16: Keycode] = [
+        0x00: .a, 0x0B: .b, 0x08: .c, 0x02: .d, 0x0E: .e, 0x03: .f, 0x05: .g, 0x04: .h,
+        0x22: .i, 0x26: .j, 0x28: .k, 0x25: .l, 0x2E: .m, 0x2D: .n, 0x1F: .o, 0x23: .p,
+        0x0C: .q, 0x0F: .r, 0x01: .s, 0x11: .t, 0x20: .u, 0x09: .v, 0x0D: .w, 0x07: .x,
+        0x10: .y, 0x06: .z,
+        0x12: .digit1, 0x13: .digit2, 0x14: .digit3, 0x15: .digit4, 0x17: .digit5,
+        0x16: .digit6, 0x1A: .digit7, 0x1C: .digit8, 0x19: .digit9, 0x1D: .digit0,
+        0x24: .return, 0x4C: .return,
+        0x35: .escape, 0x33: .backspace,
+        0x75: .deleteForward, // macOS kVK_ForwardDelete; PC "Del" (HID 0x4C) maps here, not 0x33 (backspace)
+        0x30: .tab, 0x31: .space,
+        0x1B: .minus, 0x18: .equal, 0x21: .leftBracket, 0x1E: .rightBracket,
+        0x2A: .backslash, 0x29: .semicolon, 0x27: .quote, 0x32: .grave,
+        0x2B: .comma, 0x2F: .period, 0x2C: .slash, 0x39: .capsLock,
+        0x7A: .f1, 0x78: .f2, 0x63: .f3, 0x76: .f4, 0x60: .f5, 0x61: .f6,
+        0x62: .f7, 0x64: .f8, 0x65: .f9, 0x6D: .f10, 0x67: .f11, 0x6F: .f12,
+        0x7C: .rightArrow, 0x7B: .leftArrow, 0x7D: .downArrow, 0x7E: .upArrow
+    ]
 }

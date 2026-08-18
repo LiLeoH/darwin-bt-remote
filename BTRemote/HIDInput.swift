@@ -6,7 +6,7 @@ import Foundation
 
 /// routes UI input to the active HID backend
 struct HIDInput {
-    let sendMouse: (MouseReport) -> Void
+    let sendMouse: (MouseReport, @escaping () -> Void) -> Void
     let sendKeyboard: (KeyboardReport) -> Void
     let sendConsumer: (ConsumerReport) -> Void
     let updateBattery: (UInt8) -> Void
@@ -26,17 +26,17 @@ struct HIDInput {
     }
 
     func click(_ button: MouseButtons) {
-        sendMouse(MouseReport(buttons: button))
-        sendMouse(.zero)
+        sendMouse(MouseReport(buttons: button)) {}
+        sendMouse(.zero) {}
     }
 
     func move(dx: Int8, dy: Int8) {
-        sendMouse(MouseReport(dX: dx, dY: dy))
+        sendMouse(MouseReport(dX: dx, dY: dy)) {}
     }
 
     func scroll(_ wheel: Int8) {
-        sendMouse(MouseReport(wheel: wheel))
-        sendMouse(.zero)
+        sendMouse(MouseReport(wheel: wheel)) {}
+        sendMouse(.zero) {}
     }
 
     func type(_ character: Character) {
@@ -74,7 +74,7 @@ extension HIDInput {
         static func make(lowEnergy: HIDPeripheral, central: HIDCentral, classic: HIDClassicDevice, classicMode: Bool) -> HIDInput {
             guard classicMode else { return _lowEnergy(lowEnergy, central) }
             return HIDInput(
-                sendMouse: { classic.sendMouse($0) },
+                sendMouse: { classic.sendMouse($0, $1) },
                 sendKeyboard: { classic.sendKeyboard($0) },
                 sendConsumer: { classic.sendConsumer($0) },
                 updateBattery: { classic.updateBatteryLevel($0) },
@@ -94,7 +94,7 @@ extension HIDInput {
     @MainActor
     private static func _lowEnergy(_ lowEnergy: HIDPeripheral, _ central: HIDCentral) -> HIDInput {
         HIDInput(
-            sendMouse: { lowEnergy.sendMouse($0) },
+            sendMouse: { lowEnergy.sendMouse($0, $1) },
             sendKeyboard: { lowEnergy.sendKeyboard($0) },
             sendConsumer: { lowEnergy.sendConsumer($0) },
             updateBattery: { lowEnergy.updateBatteryLevel($0) },
@@ -118,8 +118,12 @@ enum Haptics {
 /// US-layout ASCII to keycode/modifier mapping
 private func mapASCII(_ character: Character) -> (Keycode, KeyboardModifiers)? {
     if let a = character.asciiValue {
-        if a >= 0x61, a <= 0x7A, let key = Keycode(rawValue: 0x04 + (a - 0x61)) { return (key, []) } // a..z
-        if a >= 0x41, a <= 0x5A, let key = Keycode(rawValue: 0x04 + (a - 0x41)) { return (key, .leftShift) } // A..Z
+        if a >= 0x61, a <= 0x7A, let key = Keycode(rawValue: 0x04 + (a - 0x61)) {
+            return (key, [])
+        } // a..z
+        if a >= 0x41, a <= 0x5A, let key = Keycode(rawValue: 0x04 + (a - 0x41)) {
+            return (key, .leftShift)
+        } // A..Z
     }
     return _symbolKeys[character]
 }

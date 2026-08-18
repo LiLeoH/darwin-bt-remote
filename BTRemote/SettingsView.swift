@@ -8,6 +8,14 @@ struct SettingsView: View {
     #if os(macOS)
         @EnvironmentObject private var classic: HIDClassicDevice
         @Environment(\.macTransport) private var macTransport
+        @EnvironmentObject private var shortcutManager: DirectInputShortcutManager
+        @AppStorage(AppSettings.directInputOutputHzKey) private var directInputOutputHz = AppSettings.defaultDirectInputOutputHz
+        @AppStorage(AppSettings.directInputMaxOutstandingWritesKey)
+        private var maxOutstandingWrites = AppSettings.defaultDirectInputMaxOutstandingWrites
+        @AppStorage(AppSettings.directInputIndicatorEnabledKey) private var directInputIndicatorEnabled = true
+        @AppStorage(AppSettings.macToWindowsModifierRemapKey) private var macToWindowsModifierRemap = false
+        @AppStorage(AppSettings.clipboardSyncEnabledKey) private var clipboardSyncEnabled = true
+        @AppStorage(AppSettings.clipboardSyncImagesEnabledKey) private var clipboardSyncImagesEnabled = true
     #endif
     @AppStorage(AppSettings.touchpadSensitivityKey) private var touchpadSensitivity = AppSettings.defaultPointerSensitivity
     @AppStorage(AppSettings.scrollSensitivityKey) private var scrollSensitivity = AppSettings.defaultScrollSensitivity
@@ -54,15 +62,76 @@ struct SettingsView: View {
             #endif
             Section(footer: Text(L10n.Settings.forceServiceChangedHint)) {
                 Toggle(L10n.Settings.forceServiceChanged, isOn: $forceServiceChanged)
-                    .onChange(of: forceServiceChanged) { if $0 { lowEnergy.scheduleServiceChanged() } }
+                    .onChange(of: forceServiceChanged) {
+                        if $0 {
+                            lowEnergy.scheduleServiceChanged()
+                        }
+                    }
             }
+            #if os(macOS)
+                Section(header: Text(L10n.Shortcut.section), footer: Text(L10n.Shortcut.recorderHelp)) {
+                    HotkeyRecorder(
+                        hotkey: Binding(
+                            get: { shortcutManager.hotkey },
+                            set: { shortcutManager.setHotkey($0) }
+                        ),
+                        conflict: { shortcutManager.conflict(for: $0) }
+                    )
+                }
+                Section(header: Text(L10n.Settings.directInputRate), footer: Text(L10n.Settings.directInputRateHint)) {
+                    HStack {
+                        Text(L10n.Settings.directInputRate)
+                        Spacer()
+                        Text("\(directInputOutputHz) Hz")
+                            .foregroundColor(.secondary)
+                    }
+                    Slider(
+                        value: Binding(
+                            get: { Double(directInputOutputHz) },
+                            set: { directInputOutputHz = Int($0) }
+                        ),
+                        in: Double(AppSettings.directInputOutputHzRange.lowerBound) ...
+                            Double(AppSettings.directInputOutputHzRange.upperBound),
+                        step: 5
+                    )
+                }
+                Section(header: Text(L10n.Settings.maxOutstandingWrites), footer: Text(L10n.Settings.maxOutstandingWritesHint)) {
+                    Stepper(
+                        value: $maxOutstandingWrites,
+                        in: AppSettings.directInputMaxOutstandingWritesRange,
+                        step: 1
+                    ) {
+                        HStack {
+                            Text(L10n.Settings.maxOutstandingWrites)
+                            Spacer()
+                            Text("\(maxOutstandingWrites)")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                Section(footer: Text(L10n.Settings.directInputIndicatorHint)) {
+                    Toggle(L10n.Settings.directInputIndicator, isOn: $directInputIndicatorEnabled)
+                }
+                Section(footer: Text(L10n.Settings.macToWindowsModifierRemapHint)) {
+                    Toggle(L10n.Settings.macToWindowsModifierRemap, isOn: $macToWindowsModifierRemap)
+                }
+                Section(footer: Text(L10n.Settings.clipboardSyncHint)) {
+                    Toggle(L10n.Settings.clipboardSync, isOn: $clipboardSyncEnabled)
+                }
+                Section(footer: Text(L10n.Settings.clipboardSyncImagesHint)) {
+                    Toggle(L10n.Settings.clipboardSyncImages, isOn: $clipboardSyncImagesEnabled)
+                        .disabled(!clipboardSyncEnabled)
+                }
+            #endif
             Section(header: Text(L10n.Settings.advanced)) {
                 Toggle(L10n.Settings.developerMode, isOn: $developerMode)
                 Link(destination: AppSettings.repoURL) {
                     Label(L10n.Settings.sourceCode, systemImage: "chevron.left.forwardslash.chevron.right")
                 }
             }
-            if developerMode, hid.isActive { batterySection }
+            if developerMode, hid.isActive {
+                batterySection
+            }
             resetSection
         }
         .confirmationDialog(L10n.Settings.resetConfirm, isPresented: $showReset, titleVisibility: .visible) {
@@ -132,6 +201,7 @@ struct SettingsView: View {
                 .environmentObject(HIDCentral())
                 .environmentObject(DeviceNameStore())
                 .environmentObject(HIDClassicDevice())
+                .environmentObject(DirectInputShortcutManager.shared)
         #endif
     }
 #endif

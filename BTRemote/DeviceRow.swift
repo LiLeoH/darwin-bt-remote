@@ -60,7 +60,9 @@ struct DeviceEntry: Identifiable, Equatable {
     }
 
     var displayName: String {
-        if isNamed { return name }
+        if isNamed {
+            return name
+        }
         return "[\(manufacturer ?? L10n.Device.unknownManufacturer)]"
     }
 }

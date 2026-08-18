@@ -13,9 +13,6 @@ struct KeyboardView: View {
     #endif
 
     @AppStorage(AppSettings.developerModeKey) private var developerMode = false
-    @State private var text = ""
-    @State private var sent = ""
-    @State private var resetting = false
     @State private var mods: KeyboardModifiers = []
     @FocusState private var focused: Bool
     @StateObject private var typist = KeyTypist()
@@ -79,6 +76,7 @@ struct KeyboardView: View {
                     VStack(spacing: 12) {
                         inputField
                         keyPanel
+                        shortcutsPanel
                         Spacer(minLength: 0)
                     }
                     .frame(maxWidth: .infinity)
@@ -89,6 +87,7 @@ struct KeyboardView: View {
                 VStack(spacing: 12) {
                     inputField
                     keyPanel
+                    shortcutsPanel
                     TrackpadPanel(hid: hid).frame(maxHeight: .infinity)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -106,20 +105,7 @@ struct KeyboardView: View {
     }
 
     private var inputField: some View {
-        HStack(spacing: 8) {
-            TextField(L10n.Keyboard.prompt, text: $text)
-                .textFieldStyle(.roundedBorder)
-                .focused($focused)
-                .autocorrectionDisabled()
-            #if os(iOS)
-                .textInputAutocapitalization(.never)
-                .keyboardType(.asciiCapable)
-            #endif
-                .onChange(of: text) { handleChange($0) }
-                .onSubmit { press(.return) }
-            Button(L10n.Keyboard.clear) { clear() }
-                .buttonStyle(.bordered)
-        }
+        HIDTextSender(hid: hid, mods: $mods, focus: $focused)
     }
 
     private var keyPanel: some View {
@@ -148,7 +134,9 @@ struct KeyboardView: View {
 
     private func keyCapButton(_ key: KeyCap) -> some View {
         let armed: Bool = {
-            if case let .modifier(mod) = key.action { return mods.contains(mod) }
+            if case let .modifier(mod) = key.action {
+                return mods.contains(mod)
+            }
             return false
         }()
         return Button {
@@ -199,11 +187,9 @@ struct KeyboardView: View {
     private var row2: [KeyCap] {
         [
             KeyCap(.symbol("shift"), L10n.Keyboard.shift, .modifier(.leftShift)),
-            KeyCap(.symbol("command"), L10n.Keyboard.meta, .modifier(.leftGUI)),
             KeyCap(.symbol("arrow.left"), L10n.Keyboard.left, .key(.leftArrow)),
             KeyCap(.symbol("arrow.down"), L10n.Keyboard.down, .key(.downArrow)),
             KeyCap(.symbol("arrow.right"), L10n.Keyboard.right, .key(.rightArrow)),
-            KeyCap(.symbol("command"), L10n.Keyboard.meta, .modifier(.rightGUI)),
             KeyCap(.symbol("shift"), L10n.Keyboard.shift, .modifier(.rightShift))
         ]
     }
@@ -211,7 +197,8 @@ struct KeyboardView: View {
     private var row3: [KeyCap] {
         [
             KeyCap(.symbol("control"), L10n.Keyboard.ctrl, .modifier(.leftCtrl)),
-            KeyCap(.symbol("option"), L10n.Keyboard.alt, .modifier(.leftAlt)),
+            KeyCap(.text(L10n.Keyboard.win), L10n.Keyboard.win, .modifier(.leftGUI)),
+            KeyCap(.text(L10n.Keyboard.alt), L10n.Keyboard.alt, .modifier(.leftAlt)),
             KeyCap(.blank, weight: 3, L10n.Keyboard.space, .key(.space)),
             KeyCap(.text(L10n.Keyboard.altGr), L10n.Keyboard.altGr, .modifier(.rightAlt)),
             KeyCap(.symbol("control"), L10n.Keyboard.ctrl, .modifier(.rightCtrl))
@@ -224,34 +211,18 @@ struct KeyboardView: View {
     }
 
     private func toggle(_ mod: KeyboardModifiers) {
-        if mods.contains(mod) { mods.subtract(mod) } else { mods.insert(mod) }
+        if mods.contains(mod) {
+            mods.subtract(mod)
+        } else {
+            mods.insert(mod)
+        }
     }
 
-    // live typing: diff the field against what was already sent
-
-    private func handleChange(_ new: String) {
-        if resetting {
-            resetting = false
-            sent = new
-            return
-        }
+    /// sends a multi-key chord (modifiers held while the keys go down, then everything released)
+    private func sendShortcut(_ shortcut: WindowsShortcut) {
         typist.send = hid.sendKeyboard
-        let prefix = new.commonPrefix(with: sent).count
-        var reports: [KeyboardReport] = []
-        for _ in 0 ..< (sent.count - prefix) {
-            reports += HIDInput.keyReports(for: .backspace)
-        }
-        for character in new.dropFirst(prefix) {
-            reports += HIDInput.keyReports(for: character, adding: mods)
-        }
-        typist.enqueue(reports)
-        sent = new
-    }
-
-    private func clear() {
-        resetting = true
-        text = ""
-        focused = true
+        let down = KeyboardReport(modifiers: shortcut.modifiers, keys: shortcut.keys)
+        typist.enqueue([down, .zero])
     }
 }
 
@@ -280,29 +251,47 @@ private struct KeyCap {
     }
 }
 
-/// paces keyboard reports so each down/up transition is delivered;
-/// without spacing, rapid identical key presses get coalesced and lost.
-@MainActor
-private final class KeyTypist: ObservableObject {
-    var send: ((KeyboardReport) -> Void)?
+private let shortcutColumns = Array(
+    repeating: GridItem(.flexible(minimum: 0), spacing: 8),
+    count: 4
+)
 
-    private var queue: [KeyboardReport] = []
-    private var draining = false
-
-    func enqueue(_ reports: [KeyboardReport]) {
-        guard !reports.isEmpty else { return }
-        queue.append(contentsOf: reports)
-        guard !draining else { return }
-        draining = true
-        Task { await drain() }
+private extension KeyboardView {
+    var shortcutsPanel: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(L10n.Keyboard.shortcutsSection)
+                .font(.caption.weight(.semibold))
+                .foregroundColor(.secondary)
+            LazyVGrid(columns: shortcutColumns, spacing: 8) {
+                ForEach(windowsShortcuts) { shortcut in
+                    shortcutChip(shortcut)
+                }
+            }
+            .padding(.horizontal, 2)
+        }
     }
 
-    private func drain() async {
-        while !queue.isEmpty {
-            send?(queue.removeFirst())
-            try? await Task.sleep(nanoseconds: 20_000_000)
+    func shortcutChip(_ shortcut: WindowsShortcut) -> some View {
+        Button {
+            Haptics.tap()
+            sendShortcut(shortcut)
+        } label: {
+            VStack(spacing: 2) {
+                Text(shortcut.combo)
+                    .font(.footnote.weight(.medium))
+                    .lineLimit(1)
+                Text(shortcut.caption)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .padding(.horizontal, 8)
+            .background(RoundedRectangle(cornerRadius: 8).fill(groupFill))
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.2)))
         }
-        draining = false
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(shortcut.caption), \(shortcut.accessibility)")
     }
 }
 

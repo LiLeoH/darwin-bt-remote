@@ -314,6 +314,10 @@ extension L10n {
             "keyboard.alt"
         }
 
+        static var win: LocalizedStringKey {
+            "keyboard.win"
+        }
+
         static var meta: LocalizedStringKey {
             "keyboard.meta"
         }
@@ -336,6 +340,10 @@ extension L10n {
 
         static var space: LocalizedStringKey {
             "keyboard.space"
+        }
+
+        static var shortcutsSection: LocalizedStringKey {
+            "keyboard.shortcuts_section"
         }
     }
 
@@ -386,6 +394,24 @@ extension L10n {
 
         static var connectedPromptMessage: LocalizedStringKey {
             "direct_input.connected_prompt_message"
+        }
+
+        /// Shown (as lastError / menu hint) when Direct Input is started with no toggle shortcut set.
+        static var needToggleHotkey: LocalizedStringKey {
+            "direct_input.need_toggle_hotkey"
+        }
+
+        static var needToggleHotkeyString: String {
+            String(localized: "direct_input.need_toggle_hotkey")
+        }
+
+        /// Shown when Direct Input is started while no host is subscribed/connected (count 0).
+        static var noHostConnected: LocalizedStringKey {
+            "direct_input.no_host_connected"
+        }
+
+        static var noHostConnectedString: String {
+            String(localized: "direct_input.no_host_connected")
         }
     }
 

@@ -77,7 +77,9 @@
 
             @objc func handleScroll(_ pan: UIPanGestureRecognizer) {
                 guard let view = pan.view else { return }
-                if pan.state == .began { scrollAccumulator = 0 }
+                if pan.state == .began {
+                    scrollAccumulator = 0
+                }
                 scrollAccumulator += pan.translation(in: view).y
                 pan.setTranslation(.zero, in: view)
                 let step = scrollStep / max(scrollSensitivity, 0.1)

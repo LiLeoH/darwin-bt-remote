@@ -17,6 +17,7 @@ struct SetupView: View {
     #if os(macOS)
         @EnvironmentObject private var classic: HIDClassicDevice
         @AppStorage("BTRemote.macTransportMode") private var modeRaw: String = TransportMode.defaultMode.rawValue
+        @ObservedObject private var shortcuts = DirectInputShortcutManager.shared
     #endif
 
     private var classicMode: Bool {
@@ -44,7 +45,9 @@ struct SetupView: View {
             }
             .onDisappear { directInput.stop() }
             .onChange(of: hid.isActive) { isActive in
-                if !isActive { directInput.stop() }
+                if !isActive {
+                    directInput.stop()
+                }
             }
         #else
             NavigationView {
@@ -52,7 +55,9 @@ struct SetupView: View {
             }
             .navigationViewStyle(.stack)
             .onChange(of: hid.isActive) { isActive in
-                if !isActive { directInput.stop() }
+                if !isActive {
+                    directInput.stop()
+                }
             }
         #endif
     }
@@ -74,7 +79,9 @@ struct SetupView: View {
                 }
             }
             statusSection
-            if hid.isActive { directInputSection }
+            if hid.isActive {
+                directInputSection
+            }
             if let lastError = hid.activeError {
                 Section(header: Text(L10n.Section.lastError)) {
                     Text(verbatim: lastError).foregroundColor(.red).font(.caption)
@@ -302,7 +309,7 @@ struct SetupView: View {
 
     #if os(macOS)
         private var directInputSection: some View {
-            Section(header: Text(L10n.DirectInput.section), footer: Text(L10n.DirectInput.releaseHint)) {
+            Section(header: Text(L10n.DirectInput.section), footer: directInputFooter) {
                 Toggle(isOn: directInputBinding) {
                     Label(L10n.DirectInput.toggle, systemImage: "rectangle.and.hand.point.up.left")
                 }
@@ -311,6 +318,17 @@ struct SetupView: View {
                         .font(.caption)
                         .foregroundColor(.red)
                 }
+            }
+        }
+
+        /// Footer that reflects the single configurable toggle shortcut: the bound combination
+        /// when set, otherwise a pointer to Settings where one can be assigned. This shortcut is
+        /// the only hardware control for Direct Input — there is no separate release combination.
+        private var directInputFooter: Text {
+            if let hotkey = shortcuts.hotkey {
+                Text(String(format: L10n.Shortcut.hintString, hotkey.displayString))
+            } else {
+                Text(L10n.Shortcut.setupUnsetHint)
             }
         }
 
@@ -398,9 +416,15 @@ private extension CBManagerState {
 private extension KeyboardLEDs {
     var localizedLabel: String {
         var parts: [String] = []
-        if contains(.numLock) { parts.append(L10n.KeyboardLED.numLock) }
-        if contains(.capsLock) { parts.append(L10n.KeyboardLED.capsLock) }
-        if contains(.scrollLock) { parts.append(L10n.KeyboardLED.scrollLock) }
+        if contains(.numLock) {
+            parts.append(L10n.KeyboardLED.numLock)
+        }
+        if contains(.capsLock) {
+            parts.append(L10n.KeyboardLED.capsLock)
+        }
+        if contains(.scrollLock) {
+            parts.append(L10n.KeyboardLED.scrollLock)
+        }
         return parts.isEmpty ? L10n.Value.noneString : ListFormatter.localizedString(byJoining: parts)
     }
 }

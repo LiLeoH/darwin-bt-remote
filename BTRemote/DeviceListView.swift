@@ -88,25 +88,24 @@ struct DeviceListView: View {
 
     /// peripherals found by scanning (central role)
     private var _devices: [DeviceEntry] {
-        central.discovered
-            .map { peripheral in
-                DeviceEntry(
-                    id: peripheral.id,
-                    name: peripheral.name,
-                    isNamed: peripheral.isNamed,
-                    rssi: peripheral.rssi,
-                    advertisedServices: peripheral.advertisedServices,
-                    companyID: peripheral.companyID,
-                    txPower: peripheral.txPower,
-                    isConnectable: peripheral.isConnectable,
-                    isHostConnected: false,
-                    isCentralConnected: central.connected.contains(peripheral.id),
-                    isConnecting: central.connecting.contains(peripheral.id),
-                    isSubscribed: false,
-                    isActive: true
-                )
-            }
-            .sorted(by: _isOrderedBefore)
+        let entries = central.discovered.map { peripheral in
+            DeviceEntry(
+                id: peripheral.id,
+                name: peripheral.name,
+                isNamed: peripheral.isNamed,
+                rssi: peripheral.rssi,
+                advertisedServices: peripheral.advertisedServices,
+                companyID: peripheral.companyID,
+                txPower: peripheral.txPower,
+                isConnectable: peripheral.isConnectable,
+                isHostConnected: false,
+                isCentralConnected: central.connected.contains(peripheral.id),
+                isConnecting: central.connecting.contains(peripheral.id),
+                isSubscribed: false,
+                isActive: true
+            )
+        }
+        return entries.sorted { _isOrderedBefore($0, $1) }
     }
 
     private func _isOrderedBefore(_ lhs: DeviceEntry, _ rhs: DeviceEntry) -> Bool {

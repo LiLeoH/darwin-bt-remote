@@ -194,6 +194,220 @@ extension L10n {
         static var resetConfirm: LocalizedStringKey {
             "settings.reset_confirm"
         }
+
+        static var directInputRate: LocalizedStringKey {
+            "settings.direct_input_rate"
+        }
+
+        static var directInputRateHint: LocalizedStringKey {
+            "settings.direct_input_rate_hint"
+        }
+
+        static var maxOutstandingWrites: LocalizedStringKey {
+            "settings.max_outstanding_writes"
+        }
+
+        static var maxOutstandingWritesHint: LocalizedStringKey {
+            "settings.max_outstanding_writes_hint"
+        }
+
+        static var directInputIndicator: LocalizedStringKey {
+            "settings.direct_input_indicator"
+        }
+
+        static var directInputIndicatorHint: LocalizedStringKey {
+            "settings.direct_input_indicator_hint"
+        }
+
+        static var macToWindowsModifierRemap: LocalizedStringKey {
+            "settings.mac_to_windows_modifier_remap"
+        }
+
+        static var macToWindowsModifierRemapHint: LocalizedStringKey {
+            "settings.mac_to_windows_modifier_remap_hint"
+        }
+
+        static var clipboardSync: LocalizedStringKey {
+            "settings.clipboard_sync"
+        }
+
+        static var clipboardSyncHint: LocalizedStringKey {
+            "settings.clipboard_sync_hint"
+        }
+
+        static var clipboardSyncImages: LocalizedStringKey {
+            "settings.clipboard_sync_images"
+        }
+
+        static var clipboardSyncImagesHint: LocalizedStringKey {
+            "settings.clipboard_sync_images_hint"
+        }
+    }
+
+    enum CaptureIndicator {
+        static var label: LocalizedStringKey {
+            "capture_indicator.label"
+        }
+
+        static var exitPrefix: LocalizedStringKey {
+            "capture_indicator.exit_prefix"
+        }
+    }
+
+    enum StatusBar {
+        static var title: LocalizedStringKey {
+            "status_bar.title"
+        }
+
+        static var windowsShortcuts: LocalizedStringKey {
+            "status_bar.windows_shortcuts"
+        }
+
+        static var startDirectInput: LocalizedStringKey {
+            "status_bar.start_direct_input"
+        }
+
+        static var stopDirectInput: LocalizedStringKey {
+            "status_bar.stop_direct_input"
+        }
+
+        static var active: LocalizedStringKey {
+            "status_bar.active"
+        }
+
+        static var tooltipIdle: LocalizedStringKey {
+            "status_bar.tooltip_idle"
+        }
+
+        static var tooltipCapturing: LocalizedStringKey {
+            "status_bar.tooltip_capturing"
+        }
+
+        static var openMain: LocalizedStringKey {
+            "status_bar.open_main"
+        }
+
+        static var typeSection: LocalizedStringKey {
+            "status_bar.type_section"
+        }
+
+        static var typeHintDisconnected: LocalizedStringKey {
+            "status_bar.type_hint_disconnected"
+        }
+    }
+
+    enum Shortcut {
+        static var section: LocalizedStringKey {
+            "shortcut.section"
+        }
+
+        static var recorderIdle: LocalizedStringKey {
+            "shortcut.recorder_idle"
+        }
+
+        static var recording: LocalizedStringKey {
+            "shortcut.recording"
+        }
+
+        static var clear: LocalizedStringKey {
+            "shortcut.clear"
+        }
+
+        static var disabled: LocalizedStringKey {
+            "shortcut.disabled"
+        }
+
+        static var requiresKey: LocalizedStringKey {
+            "shortcut.requires_key"
+        }
+
+        static var conflictApp: LocalizedStringKey {
+            "shortcut.conflict_app"
+        }
+
+        static var conflictSystem: LocalizedStringKey {
+            "shortcut.conflict_system"
+        }
+
+        static var hint: LocalizedStringKey {
+            "shortcut.hint"
+        }
+
+        static var bannerOn: LocalizedStringKey {
+            "shortcut.banner_on"
+        }
+
+        static var bannerOff: LocalizedStringKey {
+            "shortcut.banner_off"
+        }
+
+        static var recorderHelp: LocalizedStringKey {
+            "shortcut.recorder_help"
+        }
+
+        static var setupUnsetHint: LocalizedStringKey {
+            "shortcut.setup_unset"
+        }
+
+        static var statusToggleOff: LocalizedStringKey {
+            "shortcut.status_toggle_off"
+        }
+
+        static var statusToggleOffString: String {
+            String(localized: "shortcut.status_toggle_off")
+        }
+
+        static var statusNoShortcut: LocalizedStringKey {
+            "shortcut.status_no_shortcut"
+        }
+
+        static var statusNoShortcutString: String {
+            String(localized: "shortcut.status_no_shortcut")
+        }
+
+        static var recorderIdleString: String {
+            String(localized: "shortcut.recorder_idle")
+        }
+
+        static var recordingString: String {
+            String(localized: "shortcut.recording")
+        }
+
+        static var clearString: String {
+            String(localized: "shortcut.clear")
+        }
+
+        static var disabledString: String {
+            String(localized: "shortcut.disabled")
+        }
+
+        static var requiresKeyString: String {
+            String(localized: "shortcut.requires_key")
+        }
+
+        static var conflictAppString: String {
+            String(localized: "shortcut.conflict_app")
+        }
+
+        static var conflictSystemString: String {
+            String(localized: "shortcut.conflict_system")
+        }
+
+        static var hintString: String {
+            String(localized: "shortcut.hint")
+        }
+
+        static var bannerOnString: String {
+            String(localized: "shortcut.banner_on")
+        }
+
+        static var bannerOffString: String {
+            String(localized: "shortcut.banner_off")
+        }
+
+        static var recorderHelpString: String {
+            String(localized: "shortcut.recorder_help")
+        }
     }
 
     enum ErrorMessage {

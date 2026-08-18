@@ -6,6 +6,15 @@
     import os
     import SwiftUI
 
+    /// Boxes a write-completion handler so it can be carried through IOBluetooth's `refcon`
+    /// and invoked from `l2capChannelWriteComplete` once the report has actually left the wire.
+    private final class _WriteAck {
+        let handler: () -> Void
+        init(_ handler: @escaping () -> Void) {
+            self.handler = handler
+        }
+    }
+
     /// classic (macOS): publish a SDP record, open L2CAP control/interrupt channels to the paired host and emit HID reports
     /// low energy: macOS dual-mode controller advertises the public BD address with the BR/EDR-supported flag set, so the paired host can
     /// merge the low energy entry with the BR/EDR record, but finds no HID profile as the host only looks for classic mode
@@ -26,6 +35,12 @@
         private var device: IOBluetoothDevice?
         private var controlChannel: IOBluetoothL2CAPChannel?
         private var interruptChannel: IOBluetoothL2CAPChannel?
+        /// Tracks the `refcon` of every in-flight interrupt-channel write that carries
+        /// an `onSent` completion (via `_WriteAck`). When the channel closes mid-flight
+        /// these writes can never complete, so the set is drained in `l2capChannelClosed`
+        /// to fire their completions — otherwise the caller's in-flight counter is left
+        /// elevated and its flush loop is progressively throttled (rising mouse latency).
+        private var pendingWriteAcks: [UnsafeMutableRawPointer] = []
         @Published private(set) var isConnecting = false
 
         /// answers GET_REPORT; seeded so a GET before any input still returns a valid report
@@ -115,7 +130,9 @@
 
         private func _rememberDevice(_ entry: PairedDevice) {
             var list = _loadStoredDevices()
-            if list.contains(where: { $0.id == entry.id }) { return }
+            if list.contains(where: { $0.id == entry.id }) {
+                return
+            }
             list.append(entry)
             _saveStoredDevices(list)
         }
@@ -233,8 +250,8 @@
             isConnecting = false
         }
 
-        func sendMouse(_ report: MouseReport) {
-            _sendInputReport(.mouse, payload: report.data)
+        func sendMouse(_ report: MouseReport, _ onSent: @escaping () -> Void) {
+            _sendInputReport(.mouse, payload: report.data, onSent: onSent)
         }
 
         func sendKeyboard(_ report: KeyboardReport) {
@@ -305,6 +322,37 @@
             }
         }
 
+        /// Variant that carries an `onSent` completion through `writeAsync`'s `refcon`,
+        /// fired from `l2capChannelWriteComplete` once the report has left the wire.
+        /// Used by Direct Input to bound the number of in-flight reports so the link never backs up.
+        private func _sendInputReport(_ reportID: ReportID, payload: Data, onSent: @escaping () -> Void) {
+            lastReports[reportID.rawValue] = payload
+            guard let interruptChannel else { onSent(); return }
+            var buffer = Data(capacity: 2 + payload.count)
+            buffer.append(0xA1)
+            buffer.append(reportID.rawValue)
+            buffer.append(payload)
+            let length = UInt16(buffer.count)
+            // Retained once; ownership is transferred into `writeAsync`'s refcon and
+            // released exactly once by `takeRetainedValue()` — either on a failure path
+            // below (called synchronously) or later in `l2capChannelWriteComplete`.
+            let refcon = Unmanaged.passRetained(_WriteAck(onSent)).toOpaque()
+            buffer.withUnsafeMutableBytes { raw in
+                guard let base = raw.baseAddress else {
+                    Unmanaged<_WriteAck>.fromOpaque(refcon).takeRetainedValue().handler()
+                    return
+                }
+                let status = interruptChannel.writeAsync(base, length: length, refcon: refcon)
+                if status == kIOReturnSuccess {
+                    pendingWriteAcks.append(refcon)
+                } else {
+                    Unmanaged<_WriteAck>.fromOpaque(refcon).takeRetainedValue().handler()
+                    lastError = L10n.ErrorMessage.writeFailed(Self._ioReturnCode(status))
+                    log.error("writeAsync interrupt failed \(Self._ioReturnCode(status), privacy: .public)")
+                }
+            }
+        }
+
         fileprivate nonisolated static func _ioReturnCode(_ code: IOReturn) -> String {
             String(format: "0x%08X", UInt32(bitPattern: code))
         }
@@ -318,8 +366,21 @@
         }
 
         func l2capChannelClosed(_ channel: IOBluetoothL2CAPChannel!) {
-            if channel === controlChannel { controlChannel = nil }
-            if channel === interruptChannel { interruptChannel = nil }
+            if channel === controlChannel {
+                controlChannel = nil
+            }
+            if channel === interruptChannel {
+                interruptChannel = nil
+                // All HID input reports are written on the interrupt channel; any write
+                // still in flight at this point can never complete. Release its ack and
+                // fire the completion so the caller's in-flight counter returns to
+                // baseline instead of being pinned high (which progressively throttles
+                // the flush loop and raises mouse latency until a full stall).
+                for ptr in pendingWriteAcks {
+                    Unmanaged<_WriteAck>.fromOpaque(ptr).takeRetainedValue().handler()
+                }
+                pendingWriteAcks.removeAll()
+            }
             if controlChannel == nil, interruptChannel == nil {
                 isReady = false
                 connectedAddress = nil
@@ -342,6 +403,13 @@
             refcon: UnsafeMutableRawPointer!,
             status error: IOReturn
         ) {
+            // Only act if this ack is still tracked. If the channel already closed and
+            // drained `pendingWriteAcks`, any late completion must be ignored to avoid a
+            // double `takeRetainedValue` (which would over-release / crash).
+            if let refcon, pendingWriteAcks.contains(where: { $0 == refcon }) {
+                pendingWriteAcks.removeAll { $0 == refcon }
+                Unmanaged<_WriteAck>.fromOpaque(refcon).takeRetainedValue().handler()
+            }
             if error != kIOReturnSuccess {
                 log.error("writeComplete error: \(Self._ioReturnCode(error), privacy: .public)")
             }
@@ -354,7 +422,9 @@
             case 0x00: // HANDSHAKE — device never initiates, ignore
                 break
             case 0x10: // HID_CONTROL (no handshake reply)
-                if header & 0x0F == 0x05 { disconnect() } // VIRTUAL_CABLE_UNPLUG
+                if header & 0x0F == 0x05 {
+                    disconnect()
+                } // VIRTUAL_CABLE_UNPLUG
             case 0x40: // GET_REPORT
                 _handleGetReport(bytes)
             case 0x50: // SET_REPORT
@@ -368,7 +438,9 @@
             case 0x80: // GET_IDLE
                 _sendControlData(header: 0xA0, payload: Data([idleRate]))
             case 0x90: // SET_IDLE
-                if bytes.count >= 2 { idleRate = bytes[1] }
+                if bytes.count >= 2 {
+                    idleRate = bytes[1]
+                }
                 _sendControlHandshake(status: .successful)
             case 0xA0: // DATA — host output report, no reply
                 _applyOutputReport(bytes)

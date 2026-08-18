@@ -694,6 +694,171 @@
         }
       }
     },
+    "shortcut.banner_off": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direct Input disabled"
+          }
+        }
+      }
+    },
+    "shortcut.banner_on": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direct Input enabled"
+          }
+        }
+      }
+    },
+    "shortcut.clear": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear"
+          }
+        }
+      }
+    },
+    "shortcut.conflict_app": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conflicts with the Direct Input release shortcut (⌃⌥)."
+          }
+        }
+      }
+    },
+    "shortcut.conflict_system": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "May conflict with a system shortcut: %@"
+          }
+        }
+      }
+    },
+    "shortcut.disabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disabled"
+          }
+        }
+      }
+    },
+    "shortcut.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Press %@ to toggle Direct Input on or off."
+          }
+        }
+      }
+    },
+    "shortcut.status_toggle_off": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Press %@ to turn off Direct Input."
+          }
+        }
+      }
+    },
+    "shortcut.status_no_shortcut": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direct Input is on. Turn it off in Settings."
+          }
+        }
+      }
+    },
+    "shortcut.recorder_help": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Click then press a key combination. Include a key, not just modifiers."
+          }
+        }
+      }
+    },
+    "shortcut.recorder_idle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Click to set shortcut"
+          }
+        }
+      }
+    },
+    "shortcut.recording": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording… press a key combination"
+          }
+        }
+      }
+    },
+    "shortcut.setup_unset": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set a shortcut in Settings to toggle Direct Input on and off without opening the app."
+          }
+        }
+      }
+    },
+    "shortcut.requires_key": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Include a key, not just modifiers."
+          }
+        }
+      }
+    },
+    "shortcut.section": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direct Input Shortcut"
+          }
+        }
+      }
+    },
     "error.classic_bond_required": {
       "extractionState": "manual",
       "localizations": {
@@ -947,6 +1112,17 @@
         }
       }
     },
+    "keyboard.shortcuts_section": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows Shortcuts"
+          }
+        }
+      }
+    },
     "keyboard.space": {
       "extractionState": "manual",
       "localizations": {
@@ -976,6 +1152,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Up"
+          }
+        }
+      }
+    },
+    "keyboard.win": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Win"
           }
         }
       }
@@ -2065,6 +2252,292 @@
           "stringUnit": {
             "state": "translated",
             "value": "View Guide"
+          }
+        }
+      }
+    },
+    "status_bar.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bluetooth Remote"
+          }
+        }
+      }
+    },
+    "status_bar.windows_shortcuts": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows Shortcuts"
+          }
+        }
+      }
+    },
+    "status_bar.start_direct_input": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Direct Input"
+          }
+        }
+      }
+    },
+    "status_bar.stop_direct_input": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop Direct Input"
+          }
+        }
+      }
+    },
+    "status_bar.active": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active"
+          }
+        }
+      }
+    },
+    "status_bar.tooltip_idle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bluetooth Remote"
+          }
+        }
+      }
+    },
+    "status_bar.tooltip_capturing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direct Input active"
+          }
+        }
+      }
+    },
+    "status_bar.open_main": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Main Window"
+          }
+        }
+      }
+    },
+    "status_bar.type_section": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type to Windows"
+          }
+        }
+      }
+    },
+    "status_bar.type_hint_disconnected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect a device to send text"
+          }
+        }
+      }
+    },
+    "settings.direct_input_indicator": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capture Border"
+          }
+        }
+      }
+    },
+    "settings.direct_input_indicator_hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show a red border around every screen while Direct Input is capturing, so you always know your keyboard and mouse are being forwarded to the remote host."
+          }
+        }
+      }
+    },
+    "settings.direct_input_rate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direct Input Rate"
+          }
+        }
+      }
+    },
+    "settings.direct_input_rate_hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coalesces high-polling mice into fixed-cadence HID reports. Re-open Direct Input for changes to apply."
+          }
+        }
+      }
+    },
+    "settings.max_outstanding_writes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Max In-Flight Reports"
+          }
+        }
+      }
+    },
+    "settings.max_outstanding_writes_hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caps how many mouse reports can be in flight on the Bluetooth link. Lower = lower latency but coarser movement; higher = smoother but more backlog. Re-open Direct Input for changes to apply."
+          }
+        }
+      }
+    },
+    "settings.mac_to_windows_modifier_remap": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS → Windows Modifier Remap"
+          }
+        }
+      }
+    },
+    "settings.mac_to_windows_modifier_remap_hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "While Direct Input is forwarding keys, map Command to Ctrl (Control already does), so Mac shortcuts like Cmd+C work as Ctrl+C on Windows. The Windows key is not sent. Alt/Shift pass through. The toggle hotkey still uses the real Mac keys."
+          }
+        }
+      }
+    },
+    "settings.clipboard_sync": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clipboard Sync"
+          }
+        }
+      }
+    },
+    "settings.clipboard_sync_hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatically sync the clipboard with the paired host over the encrypted LE link. Requires a companion app on the Windows target. Only active while the host is subscribed."
+          }
+        }
+      }
+    },
+    "settings.clipboard_sync_images": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Include Images"
+          }
+        }
+      }
+    },
+    "settings.clipboard_sync_images_hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Also sync PNG images from the clipboard. Images may transfer slowly over BLE (depending on size)."
+          }
+        }
+      }
+    },
+    "capture_indicator.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direct Input"
+          }
+        }
+      }
+    },
+    "direct_input.need_toggle_hotkey": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set a Direct Input toggle shortcut in Settings before starting."
+          }
+        }
+      }
+    },
+    "direct_input.no_host_connected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No host connected — the host subscription count is 0."
+          }
+        }
+      }
+    },
+    "capture_indicator.exit_prefix": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exit: "
           }
         }
       }
