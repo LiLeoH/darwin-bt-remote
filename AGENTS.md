@@ -11,7 +11,7 @@ tvOS, Android, ChromeOS, SteamOS, etc.). It needs **no companion app on the targ
 the Apple device presents itself as a standard Bluetooth HID and streams input directly.
 
 - Repository: `https://github.com/jqssun/darwin-bt-remote`
-- License: **AGPL-3.0-only** (commercial license required for closed-source distribution)
+- License: **AGPL-3.0-only**
 - Bundle ID: `io.github.jqssun.btremote`
 - Display name: **Bluetooth Remote**
 
@@ -55,7 +55,7 @@ darwin-bt-remote/
 ├── ci_scripts/
 │   └── ci_post_clone.sh      # CI bootstrap: install xcodegen, fetch JSON datasets, generate
 ├── fastlane/
-│   ├── Fastfile              # App Store release lanes (match + gym) for ios & mac
+│   ├── Fastfile              # release/build lanes (match + gym) for ios & mac
 │   ├── Appfile
 │   └── metadata, screenshots # store metadata
 ├── tools/
@@ -74,7 +74,7 @@ darwin-bt-remote/
     │                         #   status-bar managers; toggle banner when Direct Input starts/stops
     ├── Info.plist            # BT usage strings, background modes, orientation
     ├── entitlements.plist    # app-sandbox + bluetooth device entitlement (macOS)
-    ├── PrivacyInfo.xcprivacy  # Apple privacy manifest (required for App Store review)
+    ├── PrivacyInfo.xcprivacy  # Apple privacy manifest
     ├── Assets.xcassets       # AppIcon, AccentColor
     ├── Resources/
     │   ├── company_ids.json  # Bluetooth SIG company codes (fetched if missing)
@@ -108,6 +108,11 @@ darwin-bt-remote/
     ├── ShortcutRecorder.swift # (macOS) HotkeyRecorder SwiftUI view + RecorderEngine (captures a combo)
     ├── DirectInputHotkeyMonitor.swift # (macOS) global+local NSEvent monitor for the toggle Hotkey
     ├── DirectInputShortcutManager.swift # (macOS) singleton owning the persisted toggle Hotkey
+    ├── OptionCursorPin.swift  # (macOS) shared Option-key "pin & stream" cursor engine
+    │                         #   (NSObject/ObservableObject); freezes the local cursor via
+    │                         #   CGAssociateMouseAndMouseCursorPosition and forwards movement (and,
+    │                         #   in the popover, button press/drag) to the remote. Used by BOTH
+    │                         #   TrackpadNSView (trackpad surface) and StatusBarMenuView (popover).
     ├── StatusBarController.swift # (macOS) always-present menu-bar item + NSPopover (app stays resident)
     ├── StatusBarMenuView.swift  # (macOS) popover content: text send, Windows shortcuts, DI toggle
     ├── CaptureIndicatorController.swift # (macOS) singleton drawing a persistent red border on every
@@ -168,14 +173,6 @@ What it does:
    **iOS** and packages a `.ipa` under `.build/`; if the SDK is missing the iOS step is skipped
    gracefully rather than failing the whole script.
 
-> The macOS App Store release uses a **sandboxed** build with the
-> `com.apple.security.device.bluetooth` entitlement (`entitlements.plist`).
-
-### Releasing (App Store)
-`fastlane` lanes (`ios release`, `mac release`) use `match` for provisioning and
-`build_app` / `build_mac_app` for archiving. These require signing credentials and
-are not part of local dev.
-
 ### Testing
 There is **no automated test target** in `project.yml` (single application target only).
 Verification is: (a) `build.sh` green, (b) manual pairing/streaming on real hardware.
@@ -203,6 +200,26 @@ Do not assume unit tests exist; if you add behavior, prefer adding a test target
   to the text sender, the **Windows shortcuts** grid, and a Direct Input start/stop button.
   Its icon tints red while capture is active. This replaced the transient capture-only status
   item that `DirectInputController` used to show.
+
+  - **Option-key pin inside the popover**: when the text field is focused and the **Option** key
+    is held, the same `OptionCursorPin` engine pins the local cursor and streams movement (plus
+    mouse-button press/drag when `onMoveWithButtons` is set) to the remote — mirroring the
+    trackpad's hover-pin. Implementation notes (do not regress):
+    - The pin is gated solely by text-field focus (`@FocusState textFieldFocused` →
+      `optionPin.isEnabled`), **not** by cursor position — so the cursor is not frozen to keep it
+      inside the view (unlike the trackpad, whose `mouseExited` would otherwise end the pin).
+    - The popover's button monitors **observe but never consume** (`return nil`) mouse events:
+      consuming the `mouseDown` stops AppKit from starting a drag session, so the subsequent
+      `*Dragged` events are dropped before any monitor sees them and drag forwarding dies.
+    - `OptionCursorPin.forwardPinnedMove` intersects the tracked `activeButtons` with
+      `NSEvent.pressedMouseButtons` on every move so a missed `mouseUp` can't leave a stuck
+      button (a real release self-heals on the next move).
+    - `StatusBarController.presentPopover()` sets `window.acceptsMouseMovedEvents = true` so the
+      focused text field receives movement deltas.
+    - Monitor lifetime is tied to the popover, not the view: SwiftUI `onDisappear` is unreliable
+      inside a popover whose hosting controller `StatusBarController` retains, so teardown uses
+      `NSPopover.didCloseNotification` (`optionPin.deactivate()`) — this is what keeps the pin from
+      leaking out and triggering while, e.g., a Dock menu is showing.
 - **Direct Input capture indicator (macOS)**: `CaptureIndicatorController.shared` draws a persistent
   full-screen **red border** (plus a top-leading "Direct Input" badge) on **every `NSScreen`** while
   capture is active. It also paints a full-screen **gray dimming mask** (`CaptureBorderView`'s
@@ -224,7 +241,10 @@ Do not assume unit tests exist; if you add behavior, prefer adding a test target
     frozen at the pin point via `CGAssociateMouseAndMouseCursorPosition(0)` and only movement deltas
     are mirrored to the remote. Releasing Option (`stopPin`) re-associates the cursor and warps it
     back to the pin point (no jump). App deactivation (`didResignActiveNotification`) cancels the pin
-    safely so the cursor is never left frozen.
+    safely so the cursor is never left frozen. The pin engine itself is the shared
+    `OptionCursorPin` class (see `OptionCursorPin.swift`), also used by the menu-bar popover's
+    text field (below) — keep both surfaces behind it rather than re-implementing the Quartz
+    cursor-freeze/warp dance.
   - **Held-button drag model**: `TrackpadNSView` tracks `activeButtons` (a `MouseButtons` OptionSet).
     `mouseDown`/`rightMouseDown` insert the button and `mouseUp`/`rightMouseUp` remove it; every
     movement report (`forwardMove`, used by both `mouseMoved` while pinned and `mouseDragged`) is sent
@@ -476,6 +496,7 @@ SDP negotiation, GATT layout, or the bonding handshake **with no clear error log
 | Direct Input latency tuning (output rate / in-flight limit, backpressure) | `DirectInputController.swift`, `AppSettings.swift`, `SettingsView.swift`, `HIDInput.swift`, `Classic/HIDClassicDevice.swift` (see §4 "Direct Input latency & throughput model") |
 | Direct Input toggle shortcut (record/monitor/persist) | `Hotkey.swift`, `ShortcutRecorder.swift`, `DirectInputHotkeyMonitor.swift`, `DirectInputShortcutManager.swift` |
 | Menu-bar item / popover | `StatusBarController.swift`, `StatusBarMenuView.swift` |
+| Option-key cursor-pin (shared engine) | `OptionCursorPin.swift`, wired in `TrackpadPanel.swift` (trackpad) and `StatusBarMenuView.swift` (popover) |
 | Direct Input capture indicator (red border + gray mask) | `CaptureIndicatorController.swift`, `CaptureBorderView.swift`, `AppSettings.directInputIndicatorEnabledKey`, `SettingsView.swift` |
 | macOS trackpad surface (Option pin, drag/box-select, right-click, wheel) | `TrackpadPanel.swift` (`TrackpadNSView`) |
 | Shared "type text" editor | `HIDTextSender.swift` |
@@ -506,6 +527,16 @@ SDP negotiation, GATT layout, or the bonding handshake **with no clear error log
   existing `.shared` singletons and attach them once from `ContentView`.
 - Do not leave `NSEvent` monitors installed; always balance `add*MonitorForEvents` with
   `removeMonitor`, and pause the toggle monitor while `ShortcutRecorder` is capturing.
+- Do not consume (`return nil`) mouse-button events in `OptionCursorPin`'s popover monitors. The
+  popover path needs a real AppKit drag session: consuming `mouseDown` prevents the session from
+  starting, so the subsequent `*Dragged` events are dropped before any monitor sees them and drag
+  forwarding dies. Observe the events and `return event`.
+- Do not gate the popover Option-pin on cursor position; `StatusBarController` retains the popover's
+  hosting controller, so the pin must be gated by text-field focus (`@FocusState`) and torn down on
+  `NSPopover.didCloseNotification`, or the monitors leak and the pin triggers outside the popover.
+- Do not remove the `activeButtons.intersection(NSEvent.pressedMouseButtons)` heal in
+  `OptionCursorPin.forwardPinnedMove` — a missed `mouseUp` would otherwise leave a stuck button and
+  every later move re-sends the press (a real release self-heals on the next move).
 - Do not reintroduce a separate "release" key combo for Direct Input; the user-configured
   `toggleHotkey` is the single control that both starts and stops capture.
 - Do not reintroduce `CGDisplayHideCursor` for Direct Input cursor hiding unless you also guarantee a
@@ -531,8 +562,9 @@ SDP negotiation, GATT layout, or the bonding handshake **with no clear error log
   in `DirectInputController`, or the `readyWatchdog` / per-central fallback in `HIDPeripheral` — they
   keep latency bounded across long sessions (see §4).
 - Do not send a drag as a bare button-press plus buttonless move frames; HID mouse reports are full
-  state snapshots, so `TrackpadNSView.forwardMove` must carry `activeButtons` in every move frame for a
-  remote drag/box-select to register (see §4 "macOS trackpad surface").
+  state snapshots, so both `TrackpadNSView.forwardMove` and `OptionCursorPin.forwardPinnedMove` must
+  carry `activeButtons` in every move frame for a remote drag/box-select to register (see §4 "macOS
+  trackpad surface" and "Option-key pin inside the popover").
 - Do not pass a Swift `Bool` to `CGAssociateMouseAndMouseCursorPosition` — its parameter is `boolean_t`
   (an integer); pass the integer literals `0` (disable) / `1` (enable) or the call fails to compile.
 - Do not reuse `pendingBroadcast` / `stashPending` in `HIDPeripheral` for clipboard chunk delivery;

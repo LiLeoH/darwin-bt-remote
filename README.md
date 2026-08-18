@@ -1,77 +1,84 @@
 # Bluetooth HID Remote for iOS & macOS
 
-[![Stars](https://img.shields.io/github/stars/jqssun/darwin-bt-remote?label=stars&logo=GitHub)](https://github.com/jqssun/darwin-bt-remote)
-[![GitHub](https://img.shields.io/github/downloads/jqssun/darwin-bt-remote/total?label=GitHub&logo=GitHub)](https://github.com/jqssun/darwin-bt-remote/releases)
 [![license](https://img.shields.io/badge/License-AGPLv3-blue.svg)](LICENSE)
-[![build](https://img.shields.io/github/actions/workflow/status/jqssun/darwin-bt-remote/build.yml?label=build)](https://github.com/jqssun/darwin-bt-remote/actions/workflows/build.yml)
-[![release](https://img.shields.io/github/v/release/jqssun/darwin-bt-remote)](https://github.com/jqssun/darwin-bt-remote/releases)
 
-**Remote** is the first device-agnostic open-source app that turns an iPhone, iPad, or Mac into a generic Bluetooth keyboard, mouse, and trackpad, and that works reliably across every major platform. Use any Apple device as a serverless wireless remote for anything that accepts Bluetooth input, with no companion app needed on the target.
+**Bluetooth Remote** turns an iPhone, iPad, or Mac into a generic Bluetooth keyboard, mouse, and trackpad for anything that accepts standard Bluetooth input — with no companion app needed on the target. It is the Apple counterpart of [BT Remote for Android](https://github.com/jqssun/android-bt-remote).
 
-As the Apple counterpart of [BT Remote for Android](https://github.com/jqssun/android-bt-remote), it acts as a Bluetooth HID controller for Windows, Linux, macOS, iOS (and iPadOS), tvOS, Android (and Android TV, Google TV, Fire OS), ChromeOS, and SteamOS, plus any other host that supports a standard Bluetooth keyboard or mouse.
-
-Unlike network remote-control tools, it needs nothing installed on the target and relies solely on the host's built-in Bluetooth HID support. Your Apple device presents itself as a standard [Bluetooth Human Interface Device (HID)](https://www.bluetooth.com/specifications/specs/hid-service-specification/) and sends keyboard, media, and mouse input directly over Bluetooth. It also features a direct input mode where you can forward the currently connected hardware input straight to the target device, and **clipboard sync** (macOS ↔ Windows, LE mode only) for text and images with an optional Python companion — see `tools/win_clipboard_sync.py`.
-
-[<img height="48" alt="Get it on App Store" src="https://jqssun.github.io/images/badges/apple-app-store.svg">](https://apps.apple.com/app/id6778921831)
-[<img height="48" alt="Get it on GitHub" src="https://jqssun.github.io/images/badges/github.svg">](https://github.com/jqssun/darwin-bt-remote/releases/latest)
-
-| Devices | Android | Apple (iOS or macOS) | Windows |
-| :---: | :---: | :---: | :---: |
-| **iOS Controller** | <video loop src='https://github.com/user-attachments/assets/7a1853ba-d4b0-4def-97dc-4de5f4a5a114' alt="iOS controlling Android" width="260"></video> | <video loop src='https://github.com/user-attachments/assets/bab84d16-b154-40d4-b9ed-f27c462b67b0' alt="iOS controlling macOS" width="260"></video> | <video loop src='https://github.com/user-attachments/assets/ad35c59a-f1bb-4e09-a53c-2433c37ade7a' alt="iOS controlling Windows" width="260"></video> |
-| **macOS Controller** | <video loop src='https://github.com/user-attachments/assets/da88c42e-680c-43d2-8263-0180486860e0' alt="macOS controlling Android" width="260"></video> | <video loop src='https://github.com/user-attachments/assets/913a7cb7-b9d4-4d33-be6f-0262dc1ea8d2' alt="macOS controlling iOS" width="260"></video> | <video loop src='https://github.com/user-attachments/assets/d29c964a-3d34-400d-bc5d-fe1670c91c29' alt="macOS controlling Windows" width="260"></video> |
+Your Apple device presents itself as a standard [Bluetooth Human Interface Device (HID)](https://www.bluetooth.com/specifications/specs/hid-service-specification/) and sends keyboard, media, and mouse input directly over Bluetooth. It also features a Direct Input mode (forward your local hardware straight to the target), and **clipboard sync** (macOS ↔ Windows, LE only) for text and images.
 
 ## Compatibility
 
-- HID device (controller):
-    - iOS 15 (iPadOS 15) and later
-    - macOS 13 and later
+- **Controller (this app):** iOS 15 / iPadOS 15 and later, macOS 13 and later.
+- **Host (target):** Android 4+, Android TV / Google TV / Fire OS, ChromeOS, iOS 13+ / iPadOS 13+, iOS 4+ (keyboard only), tvOS 9.2+, Mac OS X 10.3+, Linux kernel 2.6+, SteamOS, Windows XP Service Pack 2+.
 
-- HID host (target):
-    - Android 4 and later
-    - Android TV, Google TV, and Fire OS
-    - ChromeOS
-    - iOS 13 (iPadOS 13) and later
-    - iOS 4 and later (keyboard only)
-    - tvOS 9.2 and later
-    - Mac OS X 10.3 and later
-    - Linux kernel 2.6 and later
-    - SteamOS
-    - Windows XP Service Pack 2 and later
+## Features
 
-## Implementation
+- **Two HID transports** — Bluetooth Low Energy (HOGP) on iOS + macOS, Bluetooth Classic (HIDP) on macOS. The macOS app can switch between them (Classic reaches Android; LE is the portable path).
+- **Full input set** — on-screen keyboard, trackpad surface, D-pad, and consumer (multimedia) controls.
+- **macOS menu-bar app** — an always-present status item opens a popover for quick text entry, Windows shortcut chords, and a Direct Input toggle. The app stays resident after the main window is closed.
+- **Direct Input** — forward your local keyboard / mouse / scroll straight to the remote host (macOS `CGEvent` tap; iOS `GameController` + pointer lock). A user-configured global hotkey toggles capture.
+- **Clipboard sync** — bidirectional text + image (JPEG) between the Mac and a paired Windows host over a custom GATT service, with an optional Python companion.
+- **Option-key cursor pin** — hold **Option** on the macOS trackpad surface, or while the menu-bar popover's text field is focused, to freeze the local cursor and stream movement (plus click / drag) to the remote.
+- **Capture indicator (macOS)** — a persistent red border (and gray dimming mask) on every screen while Direct Input captures.
+- **Windows shortcut chips** — Ctrl+Alt+Del, Win+L/D/E/R/V, Alt+Tab, Ctrl+Shift+Esc, and more.
 
-The app includes two HID backends and picks the right one depending on platform:
+## How it works
+
+The app exposes two Bluetooth HID backends and selects the right one per platform:
 
 | backend | profile | platform | path | description |
 |---|---|---|---|---|
-| Bluetooth Classic | HID Profile | macOS | [`BTRemote/Classic`](BTRemote/Classic) | IOBluetooth SDP record with L2CAP control and interrupt channels |
-| Bluetooth Low Energy | HID over GATT Profile | macOS, iOS | [`BTRemote/LowEnergy`](BTRemote/LowEnergy) | CoreBluetooth peripheral exposing the HID service |
+| Bluetooth Classic | HID Profile | macOS | [`BTRemote/Classic`](BTRemote/Classic) | IOBluetooth SDP record with L2CAP control (0x0011) + interrupt (0x0013) channels |
+| Bluetooth Low Energy | HID over GATT | macOS, iOS | [`BTRemote/LowEnergy`](BTRemote/LowEnergy) | CoreBluetooth peripheral exposing the HID service |
 
-Both backends emit the same HID report descriptors, supporting HID usages for `mouse` (relative mouse input with scroll wheel), `keyboard` (with LED output reports for state indicators), `battery` (power-level reporting), `consumerControl` (for multimedia keys), and `systemControl` (including power and sleep management).
+Both backends emit the **same HID report descriptors** (`HIDProfile.reportMapData`), supporting mouse (relative, with wheel), keyboard (with LED output), battery, consumer-control, and system-control. All UI input flows through the backend-agnostic `HIDInput` router, which forwards to the active backend's `sendMouse` / `sendKeyboard` / `sendConsumer`.
 
-Check out [`build.sh`](build.sh) for development builds, or the [CI](.github/workflows/build.yml) for building with [`fastlane`](https://github.com/fastlane/fastlane).
+## Menu-bar app (macOS)
 
-## Development
+An always-present `NSStatusItem` (`StatusBarController`) opens an `NSPopover` (`StatusBarMenuView`) with the text sender, a Windows-shortcuts grid, and a Direct Input start/stop button — the icon tints red while capture is active. Opening the popover enables the Option-key cursor-pin for its focused text field.
 
-This Bluetooth HID stack is manually developed over weeks of working around a list of undocumented platform behaviors to ensure it pairs and streams input fast and reliably on all OS versions above iOS 15 and macOS 13. Making changes to this stack is highly discouraged as it is likely to break SDP negotiation, GATT layout, or bonding handshake, with no clear error logs. Some key constraints to be aware of:
+## Direct Input
+
+Forwards your current hardware input to the target. On macOS this needs **Accessibility permission** (a `CGEvent` tap); on iOS it uses `GameController` (`GCKeyboard`/`GCMouse`) plus pointer lock for raw deltas. A user-configured global **hotkey** (recorded in Settings) toggles capture — there is no separate release combo. Send cadence (`outputReportHz`) and the in-flight write limit (`maxOutstandingWrites`) are tunable in Settings; capture and send are decoupled so a high-polling mouse stays smooth. On macOS the cursor is hidden during capture via `NSCursor.hide()`.
+
+## Clipboard sync
+
+Bidirectional text + image (JPEG q75 on the wire) sync between the Mac and a paired Windows host, over a custom GATT service alongside HOGP. A Python companion, [`tools/win_clipboard_sync.py`](tools/win_clipboard_sync.py) (`bleak` + `pyperclip`; `pillow` + `pywin32` for images), runs on Windows. Echo loops are suppressed by hashing the *re-read* pasteboard content (JPEG re-encoding changes bytes).
+
+## Option-key cursor pin
+
+On the macOS trackpad surface, holding **Option** (with the pointer inside the surface) freezes the local cursor at the pin point via `CGAssociateMouseAndMouseCursorPosition(0)` and streams only movement deltas; releasing re-associates the cursor and warps it back. The menu-bar popover mirrors this while its text field is focused. Both surfaces share the implementation in [`OptionCursorPin`](BTRemote/OptionCursorPin.swift) (`TrackpadPanel` / `TrackpadNSView` and `StatusBarMenuView`), so the logic is defined once.
+
+## Build from source
+
+Prerequisites: macOS with **Xcode 15+** (the toolchain sets `SWIFT_VERSION: 6.0`), and the command-line tools `xcodegen`, `swiftformat`, `swiftlint`, `xcbeautify` (`brew install xcodegen swiftformat swiftlint xcbeautify`). Deployment targets: iOS 15.0, macOS 13.0.
+
+The Xcode project is **generated**, not committed:
+
+```bash
+xcodegen generate          # regenerates BTRemote.xcodeproj from project.yml
+# (or run ./ci_scripts/ci_post_clone.sh, which also fetches the Bluetooth SIG JSON datasets)
+./build.sh                 # swiftformat --lint + swiftlint, then ad-hoc macOS build
+```
+
+`build.sh` runs `swiftformat --lint` and `swiftlint lint --strict` (both must pass), then builds the **macOS** scheme in Release (unsigned, then ad-hoc codesigned with `entitlements.plist`). If the iOS SDK is available it also produces an `.ipa` under `.build/`.
+
+## Architecture & contributing
+
+[`AGENTS.md`](AGENTS.md) is the authoritative guide for agents and contributors: it documents the HID stack's load-bearing constraints, the `HIDInput` backend seam, the macOS-only modules, and code conventions. **The HID stack was built over weeks of working around undocumented platform behaviors; changing it is highly discouraged** — it is likely to break SDP negotiation, GATT layout, or bonding with no clear error logs. Key constraints:
 
 ### iOS (HOGP)
-
-- iOS exposes no HID device role, so the full HOGP GATT tree must be manually constructed in `CBPeripheralManager` and the existing implementation of service, characteristic, and descriptor layout must be adhered to for pairing and input streaming to consistently work
-- SIG UUIDs must be declared with the full 128-bit canonical string since the 16-bit short form is rejected as system reserved
-- `.extendedProperties` must not be set on Protocol Mode, Boot Keyboard Output, or Output Report characteristics since it implicitly appends a descriptor that alters the GATT layout and breaks host's HID binding
-- Hosts may stall after subscribing until a baseline input report is pushed, and therefore an initial report on subscribe is required
-- Encryption and bonding are mandatory, and a stale bond on either side triggers teardowns that only a full re-pair clears
+- iOS exposes no HID device role, so the full GATT tree is constructed manually in `CBPeripheralManager`; preserve the existing service/characteristic/descriptor layout.
+- SIG UUIDs must use the full 128-bit canonical string (the 16-bit short form is rejected as system-reserved).
+- Do not set `.extendedProperties` on Protocol Mode, Boot Keyboard Output, or Output Report characteristics.
+- Hosts may stall after subscribing until a baseline input report is pushed; an initial report on subscribe is required.
+- Encryption and bonding are mandatory; a stale bond on either side requires a full re-pair.
 
 ### macOS (HIDP)
-
-- `bluetoothd` binds the HID L2CAP ports at startup and always operates as the HID host; this means the stack is restricted to outbound connections and can never listen for inbound
-- `bluetoothd` performs an SDP lookup for HID device record on the peer on every inbound attempt; Windows hosts expose no such record, so the daemon resets the connection
-- `bluetoothd` withdraws competing outbound L2CAP channels, which surfaces on Windows as the outbound open failing with "No Resources Available"
-- `bluetoothd` cannot be switched into device role by any SDP attribute or IOBluetooth flag, so in HIDP mode it can only reach stacks that accept device-initiated connections, namely Android; Windows is unreachable via HIDP by design
+- `bluetoothd` binds the HID L2CAP ports at startup and always operates as the HID host, so the stack is restricted to **outbound** connections and can never listen for inbound.
+- `bluetoothd` performs an SDP lookup for the HID device record on every inbound attempt; Windows exposes none, so the daemon resets the connection. **Windows is unreachable via HIDP by design** — Classic can only reach stacks that accept device-initiated connections (namely Android).
+- The existing SDP record layout (control PSM 0x0011, interrupt PSM 0x0013, HID v1.1, subclass 0xC0 combo device) must be preserved.
 
 ## License
 
-[AGPL-3.0-only](LICENSE). Commercial license is available upon request.
-
-Bundling this software into closed-source commercial applications, proprietary products, or App Store distributions without an explicit commercial license is copyright infringement.
+[AGPL-3.0-only](LICENSE).
